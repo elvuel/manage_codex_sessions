@@ -4,6 +4,7 @@
 [![Platforms](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-2ea44f.svg)](./README.md)
 [![GUI](https://img.shields.io/badge/GUI-PySide6-41CD52.svg)](./README.md)
 [![Build](https://img.shields.io/badge/build-PyInstaller-f97316.svg)](./README.md)
+[![Release](https://github.com/elvuel/manage_codex_sessions/actions/workflows/tag-release.yml/badge.svg)](https://github.com/elvuel/manage_codex_sessions/actions/workflows/tag-release.yml)
 
 [English](./README.md) | 简体中文
 
@@ -171,14 +172,14 @@ python build_manage_codex_sessions_gui.py -- --icon app.ico
 
 ## Release 自动化
 
-推送新的 Git tag 后，GitHub Actions 会自动构建 Windows、macOS、Linux 三个平台的发布产物，并发布到 GitHub Release：
+推送新的 `v*` Git tag 后，GitHub Actions 会自动构建 Windows、macOS、Linux 三个平台的发布产物，并发布到 GitHub Release：
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-其中 Windows 产物会打包为 `.zip`，Linux 和 macOS 产物会打包为 `.tar.gz`。
+其中 Windows 产物会打包为 `.zip`，Linux 和 macOS 产物会打包为 `.tar.gz`，并为每个产物额外生成对应的 `.sha256` 校验文件。
 
 ## Windows PowerShell 快捷用法
 

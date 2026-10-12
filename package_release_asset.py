@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import shutil
 import tarfile
 import tempfile
@@ -82,6 +83,16 @@ def write_tar_gz(archive_path: Path, staged_path: Path) -> None:
         handle.add(staged_path, arcname=staged_path.name)
 
 
+def write_sha256_file(archive_path: Path) -> Path:
+    digest = hashlib.sha256()
+    with archive_path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    checksum_path = archive_path.with_name(f"{archive_path.name}.sha256")
+    checksum_path.write_text(f"{digest.hexdigest()}  {archive_path.name}\n", encoding="utf-8")
+    return checksum_path
+
+
 def build_archive_name(tag: str, runner_os: str, runner_arch: str, source: Path) -> str:
     tag_slug = slugify_tag(tag)
     platform_slug = f"{runner_os}-{runner_arch}"
@@ -104,6 +115,8 @@ def package_release_asset(tag: str, runner_os: str, runner_arch: str, output_dir
             write_zip(archive_path, staged_path, temp_root)
         else:
             write_tar_gz(archive_path, staged_path)
+
+    write_sha256_file(archive_path)
 
     return archive_path
 

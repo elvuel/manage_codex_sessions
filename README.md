@@ -4,6 +4,7 @@
 [![Platforms](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-2ea44f.svg)](./README.md)
 [![GUI](https://img.shields.io/badge/GUI-PySide6-41CD52.svg)](./README.md)
 [![Build](https://img.shields.io/badge/build-PyInstaller-f97316.svg)](./README.md)
+[![Release](https://github.com/elvuel/manage_codex_sessions/actions/workflows/tag-release.yml/badge.svg)](https://github.com/elvuel/manage_codex_sessions/actions/workflows/tag-release.yml)
 
 English | [简体中文](./README.zh-CN.md)
 
@@ -172,14 +173,14 @@ python build_manage_codex_sessions_gui.py -- --icon app.ico
 
 ## Release Automation
 
-Pushing a new Git tag automatically builds Windows, macOS, and Linux release artifacts and publishes them to a GitHub Release:
+Pushing a new `v*` Git tag automatically builds Windows, macOS, and Linux release artifacts and publishes them to a GitHub Release:
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The workflow packages Windows builds as `.zip` and Linux/macOS builds as `.tar.gz`.
+The workflow packages Windows builds as `.zip`, Linux/macOS builds as `.tar.gz`, and publishes a matching `.sha256` file for each asset.
 
 ## Windows PowerShell Shortcut
 
