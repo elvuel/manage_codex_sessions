@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "manage-codex-sessions"
-version = "1.0.0rc1"
+version = "1.0.0"
 description = "CLI and Qt GUI for browsing, renaming, trashing, restoring, and packaging local Codex sessions."
 readme = "README.md"
 requires-python = ">=3.14"
 keywords = ["codex", "cli", "gui", "pyside6", "session-manager"]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
   "Environment :: X11 Applications :: Qt",
   "Intended Audience :: Developers",

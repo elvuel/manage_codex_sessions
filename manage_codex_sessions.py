@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 
-__version__ = "1.0.0rc1"
+__version__ = "1.0.0"
 
 
 def configure_stdout() -> None:

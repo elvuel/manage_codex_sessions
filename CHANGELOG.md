@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.0.0] - 2026-10-12
+
+### Added
+
+- Stable `1.0.0` release for the bilingual Codex session manager CLI and Qt GUI.
+- Cross-platform automated testing on Windows, Linux, and macOS.
+- Standard project metadata and editable install support via `pyproject.toml`.
+
+### Changed
+
+- Promoted the project from release candidate to the first stable production release.
+- GitHub Releases now automatically mark `-rc`, `-beta`, and `-alpha` tags as prereleases.
+
 ## [1.0.0-rc1] - 2026-10-12
 
 ### Added
