@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.1.1] - 2026-10-12
+
+### Fixed
+
+- Avoided passing the Windows `.ico` file to PyInstaller on macOS while still bundling it for the runtime GUI window icon.
+- Restored cross-platform tagged release compatibility for Windows, Linux, and macOS.
+
 ## [1.1.0] - 2026-10-12
 
 ### Added

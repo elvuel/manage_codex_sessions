@@ -191,8 +191,11 @@ def test_gui_language_override_env_is_still_respected(monkeypatch) -> None:
 def test_build_pyinstaller_command_includes_icon_and_bundled_asset() -> None:
     command = build_app.build_pyinstaller_command(False, sys.executable, [])
 
-    assert "--icon" in command
-    assert str(build_app.ICON_PATH) in command
+    if sys.platform.startswith("win"):
+        assert "--icon" in command
+        assert str(build_app.ICON_PATH) in command
+    else:
+        assert "--icon" not in command
     add_data_index = command.index("--add-data")
     add_data_value = command[add_data_index + 1]
     expected_separator = ";" if sys.platform.startswith("win") else ":"

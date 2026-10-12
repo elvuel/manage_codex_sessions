@@ -58,7 +58,8 @@ def build_pyinstaller_command(one_dir: bool, python_executable: str, extra_args:
 
     if ICON_PATH.exists():
         add_data_separator = ";" if sys.platform.startswith("win") else ":"
-        command.extend(["--icon", str(ICON_PATH)])
+        if sys.platform.startswith("win"):
+            command.extend(["--icon", str(ICON_PATH)])
         command.extend(["--add-data", f"{ICON_PATH}{add_data_separator}assets"])
 
     for module_name in HIDDEN_IMPORTS:
