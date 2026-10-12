@@ -81,6 +81,156 @@ def resolve_codex_home(codex_home: str | None) -> Path:
     return Path(codex_home).expanduser() if codex_home else default_codex_home()
 
 
+GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
+    "en": {
+        "window_title": "Codex Session Manager",
+        "filter_project_label": "Project",
+        "filter_search_label": "Search",
+        "all_projects": "All Projects",
+        "filter_placeholder": "Filter by project, session id, title, cwd, or source",
+        "unknown_project": "(Unknown Project)",
+        "header_project": "Project",
+        "header_updated": "Updated",
+        "header_deleted": "Deleted",
+        "header_files": "Files",
+        "header_size": "Size",
+        "header_source": "Source",
+        "header_session_id": "Session ID",
+        "header_thread": "Thread",
+        "header_cwd": "CWD",
+        "browse": "Browse",
+        "refresh": "Refresh",
+        "qt_backend": "Qt: {binding_name}",
+        "active_title": "Active Sessions",
+        "trash_title": "Trash",
+        "select_all": "Select All",
+        "clear_selection": "Clear Selection",
+        "rename": "Rename",
+        "delete_to_trash": "Move to Trash",
+        "restore_selected": "Restore Selected",
+        "purge_selected": "Delete Selected Permanently",
+        "purge_all": "Empty Trash",
+        "ready": "Ready",
+        "choose_codex_home": "Choose CODEX_HOME",
+        "load_failed_title": "Load Failed",
+        "status_summary": "CODEX_HOME: {codex_home} | Active {active_count} | Trash {trash_count} | Current: {title} Visible {visible_count} | Selected {selected_count}",
+        "rename_session_title": "Rename Session",
+        "rename_session_label": "New name:",
+        "rename_failed_title": "Rename Failed",
+        "rename_missing_session": "Session not found: {session_id}",
+        "rename_single_select_title": "Select One Session",
+        "rename_single_select_body": "Rename supports exactly one selected session.",
+        "no_selection_title": "No Selection",
+        "select_active_first": "Select one or more active sessions first.",
+        "select_trash_first": "Select one or more trashed sessions first.",
+        "confirm_delete_title": "Confirm Delete",
+        "confirm_delete_body": "Move the following sessions to trash:\n\n{preview}",
+        "more_sessions": "... {count} more sessions",
+        "delete_complete_title": "Delete Complete",
+        "delete_action_moved": "Moved to trash",
+        "delete_action_permanent": "Permanently deleted",
+        "delete_summary": "{action} {session_count} session(s), {deleted_file_count} rollout file(s), and {removed_index_entry_count} index record(s).",
+        "confirm_restore_title": "Confirm Restore",
+        "confirm_restore_body": "Restore the selected {count} session(s)?",
+        "restore_complete_title": "Restore Complete",
+        "restore_summary": "Restored {restored_session_count} session(s), {restored_file_count} rollout file(s), and {restored_index_entry_count} index record(s).",
+        "restore_summary_skipped": " Skipped {count} conflicted session(s): {ids}",
+        "confirm_purge_selected_title": "Confirm Permanent Delete",
+        "confirm_purge_selected_body": "Permanently delete the selected {count} trashed session(s)? This action cannot be undone.",
+        "purge_complete_title": "Delete Complete",
+        "purge_summary": "Permanently deleted {session_count} trashed session(s) and {deleted_file_count} rollout file(s).",
+        "trash_empty_title": "Trash Is Empty",
+        "trash_empty_body": "There are no trashed sessions to clear.",
+        "confirm_purge_all_title": "Empty Trash",
+        "confirm_purge_all_body": "Permanently delete all {count} session(s) in trash? This action cannot be undone.",
+        "empty_trash_complete_title": "Trash Emptied",
+        "already_running_title": "Already Running",
+        "already_running_body": "`manage_codex_sessions` GUI is already running. Only one instance is allowed.",
+    },
+    "zh-CN": {
+        "window_title": "Codex Session 管理器",
+        "filter_project_label": "项目",
+        "filter_search_label": "搜索",
+        "all_projects": "全部项目",
+        "filter_placeholder": "按项目、session id、标题、cwd、source 过滤",
+        "unknown_project": "(未知项目)",
+        "header_project": "项目",
+        "header_updated": "更新时间",
+        "header_deleted": "删除时间",
+        "header_files": "文件数",
+        "header_size": "大小",
+        "header_source": "来源",
+        "header_session_id": "Session ID",
+        "header_thread": "Thread",
+        "header_cwd": "CWD",
+        "browse": "浏览",
+        "refresh": "刷新",
+        "qt_backend": "Qt: {binding_name}",
+        "active_title": "活动 sessions",
+        "trash_title": "回收站",
+        "select_all": "全选",
+        "clear_selection": "清空选择",
+        "rename": "重命名",
+        "delete_to_trash": "删除到回收站",
+        "restore_selected": "恢复所选",
+        "purge_selected": "彻底删除所选",
+        "purge_all": "清空回收站",
+        "ready": "就绪",
+        "choose_codex_home": "选择 CODEX_HOME",
+        "load_failed_title": "加载失败",
+        "status_summary": "CODEX_HOME: {codex_home} | 活动 {active_count} | 回收站 {trash_count} | 当前: {title} 显示 {visible_count} | 已选 {selected_count}",
+        "rename_session_title": "重命名 session",
+        "rename_session_label": "新的名称：",
+        "rename_failed_title": "重命名失败",
+        "rename_missing_session": "未找到 session: {session_id}",
+        "rename_single_select_title": "请选择一条",
+        "rename_single_select_body": "重命名只支持单选 session。",
+        "no_selection_title": "未选择",
+        "select_active_first": "请先选择一个或多个活动 session。",
+        "select_trash_first": "请先选择一个或多个回收站 session。",
+        "confirm_delete_title": "确认删除",
+        "confirm_delete_body": "将以下 session 移入回收站：\n\n{preview}",
+        "more_sessions": "... 其余 {count} 个 session",
+        "delete_complete_title": "删除完成",
+        "delete_action_moved": "移入回收站",
+        "delete_action_permanent": "已永久删除",
+        "delete_summary": "{action} {session_count} 个 session，{deleted_file_count} 个 rollout 文件，{removed_index_entry_count} 条索引记录。",
+        "confirm_restore_title": "确认恢复",
+        "confirm_restore_body": "确认恢复所选 {count} 个 session 吗？",
+        "restore_complete_title": "恢复完成",
+        "restore_summary": "已恢复 {restored_session_count} 个 session，{restored_file_count} 个 rollout 文件，{restored_index_entry_count} 条索引记录。",
+        "restore_summary_skipped": "；跳过冲突 {count} 个：{ids}",
+        "confirm_purge_selected_title": "确认永久删除",
+        "confirm_purge_selected_body": "确认从回收站永久删除所选 {count} 个 session 吗？该操作不可恢复。",
+        "purge_complete_title": "删除完成",
+        "purge_summary": "已从回收站永久删除 {session_count} 个 session，{deleted_file_count} 个 rollout 文件。",
+        "trash_empty_title": "回收站为空",
+        "trash_empty_body": "当前没有可清空的回收站 session。",
+        "confirm_purge_all_title": "清空回收站",
+        "confirm_purge_all_body": "确认清空回收站中的全部 {count} 个 session 吗？该操作不可恢复。",
+        "empty_trash_complete_title": "清空完成",
+        "already_running_title": "已在运行",
+        "already_running_body": "`manage_codex_sessions` GUI 已在运行，只允许一个实例。",
+    },
+}
+
+
+def normalize_gui_language(language: str | None, *, system_locale_name: str | None = None) -> str:
+    raw = (language or os.environ.get("CODEX_UI_LANG") or "system").strip()
+    if not raw or raw.lower() in {"system", "auto", "default"}:
+        raw = system_locale_name or ""
+    normalized = raw.lower().replace("_", "-")
+    if normalized.startswith("zh"):
+        return "zh-CN"
+    return "en"
+
+
+def format_gui_text(language: str, key: str, **kwargs: object) -> str:
+    translations = GUI_TRANSLATIONS.get(language, GUI_TRANSLATIONS["en"])
+    template = translations.get(key, GUI_TRANSLATIONS["en"][key])
+    return template.format(**kwargs)
+
+
 def active_sessions_dir(codex_home: Path) -> Path:
     return codex_home / "sessions"
 
@@ -979,8 +1129,11 @@ def load_qt_binding() -> tuple[str, Any, Any]:
     )
 
 
-def launch_gui(codex_home: Path) -> int:
+def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
     binding_name, QtCore, QtWidgets = load_qt_binding()
+    qlocale = getattr(QtCore, "QLocale", None)
+    system_locale_name = qlocale.system().name() if qlocale and hasattr(qlocale, "system") else None
+    ui_language = normalize_gui_language(language, system_locale_name=system_locale_name)
 
     resize_mode = getattr(QtWidgets.QHeaderView, "ResizeMode", QtWidgets.QHeaderView)
     selection_mode = getattr(QtWidgets.QAbstractItemView, "SelectionMode", QtWidgets.QAbstractItemView)
@@ -988,6 +1141,40 @@ def launch_gui(codex_home: Path) -> int:
     edit_trigger = getattr(QtWidgets.QAbstractItemView, "EditTrigger", QtWidgets.QAbstractItemView)
     message_buttons = getattr(QtWidgets.QMessageBox, "StandardButton", QtWidgets.QMessageBox)
     sort_order = getattr(QtCore.Qt, "SortOrder", QtCore.Qt)
+
+    def t(key: str, **kwargs: object) -> str:
+        return format_gui_text(ui_language, key, **kwargs)
+
+    def format_delete_summary_gui(result: DeleteResult, *, moved_to_trash: bool) -> str:
+        action = t("delete_action_moved") if moved_to_trash else t("delete_action_permanent")
+        return t(
+            "delete_summary",
+            action=action,
+            session_count=result.session_count,
+            deleted_file_count=result.deleted_file_count,
+            removed_index_entry_count=result.removed_index_entry_count,
+        )
+
+    def format_restore_summary_gui(result: RestoreResult) -> str:
+        suffix = ""
+        if result.skipped_session_ids:
+            suffix = t(
+                "restore_summary_skipped",
+                count=len(result.skipped_session_ids),
+                ids=", ".join(result.skipped_session_ids),
+            )
+        return (
+            t(
+                "restore_summary",
+                restored_session_count=result.restored_session_count,
+                restored_file_count=result.restored_file_count,
+                restored_index_entry_count=result.restored_index_entry_count,
+            )
+            + suffix
+        )
+
+    def format_purge_summary_gui(result: PurgeResult) -> str:
+        return t("purge_summary", session_count=result.session_count, deleted_file_count=result.deleted_file_count)
 
     def acquire_gui_instance_lock() -> Any | None:
         lock_path = Path(QtCore.QDir.tempPath()) / "manage_codex_sessions_gui.lock"
@@ -1013,22 +1200,31 @@ def launch_gui(codex_home: Path) -> int:
             layout = QtWidgets.QVBoxLayout(self)
 
             filter_layout = QtWidgets.QHBoxLayout()
-            filter_layout.addWidget(QtWidgets.QLabel("项目"))
+            filter_layout.addWidget(QtWidgets.QLabel(t("filter_project_label")))
             self.project_combo = QtWidgets.QComboBox()
-            self.project_combo.addItem("全部项目", "")
+            self.project_combo.addItem(t("all_projects"), "")
             filter_layout.addWidget(self.project_combo)
-            filter_layout.addWidget(QtWidgets.QLabel("搜索"))
+            filter_layout.addWidget(QtWidgets.QLabel(t("filter_search_label")))
             self.filter_edit = QtWidgets.QLineEdit()
-            self.filter_edit.setPlaceholderText("按项目、session id、标题、cwd、source 过滤")
+            self.filter_edit.setPlaceholderText(t("filter_placeholder"))
             filter_layout.addWidget(self.filter_edit, 1)
             layout.addLayout(filter_layout)
 
-            headers = ["Project", "Updated"]
+            headers = [t("header_project"), t("header_updated")]
             if self.include_deleted_at:
-                headers.append("Deleted")
-            headers.extend(["Files", "Size", "Source", "Session ID", "Thread", "CWD"])
-            self.session_id_column = headers.index("Session ID")
-            self.thread_column = headers.index("Thread")
+                headers.append(t("header_deleted"))
+            headers.extend(
+                [
+                    t("header_files"),
+                    t("header_size"),
+                    t("header_source"),
+                    t("header_session_id"),
+                    t("header_thread"),
+                    t("header_cwd"),
+                ]
+            )
+            self.session_id_column = headers.index(t("header_session_id"))
+            self.thread_column = headers.index(t("header_thread"))
 
             self.table = QtWidgets.QTableWidget(0, len(headers))
             self.table.setHorizontalHeaderLabels(headers)
@@ -1087,9 +1283,9 @@ def launch_gui(codex_home: Path) -> int:
             projects = sorted({session.primary_project for session in self.all_sessions})
             self.project_combo.blockSignals(True)
             self.project_combo.clear()
-            self.project_combo.addItem("全部项目", "")
+            self.project_combo.addItem(t("all_projects"), "")
             for project in projects:
-                label = "(未知项目)" if project == "-" else project
+                label = t("unknown_project") if project == "-" else project
                 self.project_combo.addItem(label, project)
             index = self.project_combo.findData(current_value)
             self.project_combo.setCurrentIndex(index if index >= 0 else 0)
@@ -1168,7 +1364,7 @@ def launch_gui(codex_home: Path) -> int:
             self.active_sessions: list[SessionSummary] = []
             self.trash_sessions: list[SessionSummary] = []
 
-            self.setWindowTitle("Codex Session Manager")
+            self.setWindowTitle(t("window_title"))
             self.resize(1420, 860)
 
             root_layout = QtWidgets.QVBoxLayout(self)
@@ -1177,43 +1373,43 @@ def launch_gui(codex_home: Path) -> int:
             path_layout.addWidget(QtWidgets.QLabel("CODEX_HOME"))
             self.codex_home_edit = QtWidgets.QLineEdit(str(initial_codex_home))
             path_layout.addWidget(self.codex_home_edit, 1)
-            self.browse_button = QtWidgets.QPushButton("浏览")
-            self.refresh_button = QtWidgets.QPushButton("刷新")
+            self.browse_button = QtWidgets.QPushButton(t("browse"))
+            self.refresh_button = QtWidgets.QPushButton(t("refresh"))
             path_layout.addWidget(self.browse_button)
             path_layout.addWidget(self.refresh_button)
             root_layout.addLayout(path_layout)
 
-            self.info_label = QtWidgets.QLabel(f"Qt: {binding_name}")
+            self.info_label = QtWidgets.QLabel(t("qt_backend", binding_name=binding_name))
             root_layout.addWidget(self.info_label)
 
             self.tabs = QtWidgets.QTabWidget()
             self.active_panel = SessionPanel(
                 include_deleted_at=False,
-                title="活动 sessions",
+                title=t("active_title"),
                 button_specs=[
-                    ("select_all", "全选"),
-                    ("clear_selection", "清空选择"),
-                    ("rename", "重命名"),
-                    ("delete", "删除到回收站"),
+                    ("select_all", t("select_all")),
+                    ("clear_selection", t("clear_selection")),
+                    ("rename", t("rename")),
+                    ("delete", t("delete_to_trash")),
                 ],
             )
             self.trash_panel = SessionPanel(
                 include_deleted_at=True,
-                title="回收站",
+                title=t("trash_title"),
                 button_specs=[
-                    ("select_all", "全选"),
-                    ("clear_selection", "清空选择"),
-                    ("rename", "重命名"),
-                    ("restore", "恢复所选"),
-                    ("purge_selected", "彻底删除所选"),
-                    ("purge_all", "清空回收站"),
+                    ("select_all", t("select_all")),
+                    ("clear_selection", t("clear_selection")),
+                    ("rename", t("rename")),
+                    ("restore", t("restore_selected")),
+                    ("purge_selected", t("purge_selected")),
+                    ("purge_all", t("purge_all")),
                 ],
             )
-            self.tabs.addTab(self.active_panel, "活动 sessions")
-            self.tabs.addTab(self.trash_panel, "回收站")
+            self.tabs.addTab(self.active_panel, t("active_title"))
+            self.tabs.addTab(self.trash_panel, t("trash_title"))
             root_layout.addWidget(self.tabs, 1)
 
-            self.status_label = QtWidgets.QLabel("就绪")
+            self.status_label = QtWidgets.QLabel(t("ready"))
             root_layout.addWidget(self.status_label)
 
             self.browse_button.clicked.connect(self.choose_codex_home)
@@ -1237,7 +1433,7 @@ def launch_gui(codex_home: Path) -> int:
             return resolve_codex_home(self.codex_home_edit.text().strip() or None)
 
         def choose_codex_home(self) -> None:
-            selected = QtWidgets.QFileDialog.getExistingDirectory(self, "选择 CODEX_HOME", self.codex_home_edit.text())
+            selected = QtWidgets.QFileDialog.getExistingDirectory(self, t("choose_codex_home"), self.codex_home_edit.text())
             if not selected:
                 return
             self.codex_home_edit.setText(selected)
@@ -1249,7 +1445,7 @@ def launch_gui(codex_home: Path) -> int:
                 active = build_session_summaries(codex_home)
                 trash = build_trash_summaries(codex_home)
             except Exception as exc:
-                QtWidgets.QMessageBox.critical(self, "加载失败", str(exc))
+                QtWidgets.QMessageBox.critical(self, t("load_failed_title"), str(exc))
                 return
             self.current_codex_home = codex_home
             self.active_sessions = active
@@ -1264,11 +1460,24 @@ def launch_gui(codex_home: Path) -> int:
             visible_count = len(current_panel.visible_sessions)
             title = current_panel.title
             self.status_label.setText(
-                f"CODEX_HOME: {self.current_codex_home} | 活动 {len(self.active_sessions)} | 回收站 {len(self.trash_sessions)} | 当前: {title} 显示 {visible_count} | 已选 {selected_count}"
+                t(
+                    "status_summary",
+                    codex_home=self.current_codex_home,
+                    active_count=len(self.active_sessions),
+                    trash_count=len(self.trash_sessions),
+                    title=title,
+                    visible_count=visible_count,
+                    selected_count=selected_count,
+                )
             )
 
         def prompt_new_name(self, current_name: str) -> str | None:
-            text, accepted = QtWidgets.QInputDialog.getText(self, "重命名 session", "新的名称：", text=current_name)
+            text, accepted = QtWidgets.QInputDialog.getText(
+                self,
+                t("rename_session_title"),
+                t("rename_session_label"),
+                text=current_name,
+            )
             if not accepted:
                 return None
             value = text.strip()
@@ -1280,7 +1489,11 @@ def launch_gui(codex_home: Path) -> int:
                 return
             changed = rename_session(self.current_codex_home, session.session_id, new_name, in_trash=in_trash)
             if not changed:
-                QtWidgets.QMessageBox.warning(self, "重命名失败", f"未找到 session: {session.session_id}")
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    t("rename_failed_title"),
+                    t("rename_missing_session", session_id=session.session_id),
+                )
                 return
             self.reload_all()
 
@@ -1288,7 +1501,11 @@ def launch_gui(codex_home: Path) -> int:
             panel = self.trash_panel if in_trash else self.active_panel
             sessions = panel.selected_sessions()
             if len(sessions) != 1:
-                QtWidgets.QMessageBox.information(self, "请选择一条", "重命名只支持单选 session。")
+                QtWidgets.QMessageBox.information(
+                    self,
+                    t("rename_single_select_title"),
+                    t("rename_single_select_body"),
+                )
                 return
             self.rename_one_session(sessions[0], in_trash=in_trash)
 
@@ -1307,76 +1524,88 @@ def launch_gui(codex_home: Path) -> int:
         def delete_active_selected(self) -> None:
             sessions = self.active_panel.selected_sessions()
             if not sessions:
-                QtWidgets.QMessageBox.information(self, "未选择", "请先选择一个或多个活动 session。")
+                QtWidgets.QMessageBox.information(self, t("no_selection_title"), t("select_active_first"))
                 return
             preview = [f"- {session.session_id} | {session.thread_name or '-'}" for session in sessions[:8]]
             if len(sessions) > 8:
-                preview.append(f"... 其余 {len(sessions) - 8} 个 session")
+                preview.append(t("more_sessions", count=len(sessions) - 8))
             reply = QtWidgets.QMessageBox.question(
                 self,
-                "确认删除",
-                "将以下 session 移入回收站：\n\n" + "\n".join(preview),
+                t("confirm_delete_title"),
+                t("confirm_delete_body", preview="\n".join(preview)),
                 message_buttons.Yes | message_buttons.No,
                 message_buttons.No,
             )
             if reply != message_buttons.Yes:
                 return
             result = move_sessions_to_trash(self.current_codex_home, sessions)
-            QtWidgets.QMessageBox.information(self, "删除完成", format_delete_summary(result, moved_to_trash=True))
+            QtWidgets.QMessageBox.information(
+                self,
+                t("delete_complete_title"),
+                format_delete_summary_gui(result, moved_to_trash=True),
+            )
             self.reload_all()
 
         def restore_trash_selected(self) -> None:
             sessions = self.trash_panel.selected_sessions()
             if not sessions:
-                QtWidgets.QMessageBox.information(self, "未选择", "请先选择一个或多个回收站 session。")
+                QtWidgets.QMessageBox.information(self, t("no_selection_title"), t("select_trash_first"))
                 return
             reply = QtWidgets.QMessageBox.question(
                 self,
-                "确认恢复",
-                f"确认恢复所选 {len(sessions)} 个 session 吗？",
+                t("confirm_restore_title"),
+                t("confirm_restore_body", count=len(sessions)),
                 message_buttons.Yes | message_buttons.No,
                 message_buttons.Yes,
             )
             if reply != message_buttons.Yes:
                 return
             result = restore_sessions_from_trash(self.current_codex_home, sessions)
-            QtWidgets.QMessageBox.information(self, "恢复完成", format_restore_summary(result))
+            QtWidgets.QMessageBox.information(
+                self,
+                t("restore_complete_title"),
+                format_restore_summary_gui(result),
+            )
             self.reload_all()
 
         def purge_trash_selected(self) -> None:
             sessions = self.trash_panel.selected_sessions()
             if not sessions:
-                QtWidgets.QMessageBox.information(self, "未选择", "请先选择一个或多个回收站 session。")
+                QtWidgets.QMessageBox.information(self, t("no_selection_title"), t("select_trash_first"))
                 return
             reply = QtWidgets.QMessageBox.warning(
                 self,
-                "确认永久删除",
-                f"确认从回收站永久删除所选 {len(sessions)} 个 session 吗？该操作不可恢复。",
+                t("confirm_purge_selected_title"),
+                t("confirm_purge_selected_body", count=len(sessions)),
                 message_buttons.Yes | message_buttons.No,
                 message_buttons.No,
             )
             if reply != message_buttons.Yes:
                 return
             result = purge_trashed_sessions(self.current_codex_home, sessions)
-            QtWidgets.QMessageBox.information(self, "删除完成", format_purge_summary(result))
+            QtWidgets.QMessageBox.information(self, t("purge_complete_title"), format_purge_summary_gui(result))
             self.reload_all()
 
         def purge_trash_all(self) -> None:
             sessions = list(self.trash_sessions)
             if not sessions:
-                QtWidgets.QMessageBox.information(self, "回收站为空", "当前没有可清空的回收站 session。")
+                QtWidgets.QMessageBox.information(self, t("trash_empty_title"), t("trash_empty_body"))
                 return
             reply = QtWidgets.QMessageBox.warning(
                 self,
-                "清空回收站",
-                f"确认清空回收站中的全部 {len(sessions)} 个 session 吗？该操作不可恢复。",
+                t("confirm_purge_all_title"),
+                t("confirm_purge_all_body", count=len(sessions)),
                 message_buttons.Yes | message_buttons.No,
                 message_buttons.No,
             )
             if reply != message_buttons.Yes:
                 return
             result = purge_trashed_sessions(self.current_codex_home, sessions)
-            QtWidgets.QMessageBox.information(self, "清空完成", format_purge_summary(result))
+            QtWidgets.QMessageBox.information(
+                self,
+                t("empty_trash_complete_title"),
+                format_purge_summary_gui(result),
+            )
             self.reload_all()
 
     app = QtWidgets.QApplication.instance()
@@ -1386,7 +1615,7 @@ def launch_gui(codex_home: Path) -> int:
 
     instance_lock = acquire_gui_instance_lock()
     if instance_lock is None:
-        QtWidgets.QMessageBox.information(None, "已在运行", "`manage_codex_sessions` GUI 已在运行，只允许一个实例。")
+        QtWidgets.QMessageBox.information(None, t("already_running_title"), t("already_running_body"))
         return 1
 
     if hasattr(app, "aboutToQuit"):
@@ -1403,7 +1632,7 @@ def launch_gui(codex_home: Path) -> int:
 def command_gui(args: argparse.Namespace) -> int:
     codex_home = resolve_codex_home(args.codex_home)
     try:
-        return launch_gui(codex_home)
+        return launch_gui(codex_home, language=getattr(args, "lang", None))
     except RuntimeError as exc:
         print(str(exc), file=sys.stderr)
         return 2
@@ -1483,6 +1712,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     gui_parser = subparsers.add_parser("gui", aliases=["qt"], help="启动 Qt 图形界面管理 sessions。")
     gui_parser.add_argument("--codex-home", help="Codex 数据目录，默认读取 CODEX_HOME 或 ~/.codex。")
+    gui_parser.add_argument("--lang", help="GUI 语言：system、en、zh-CN。默认跟随系统语言或 CODEX_UI_LANG。")
     gui_parser.set_defaults(func=command_gui)
 
     return parser

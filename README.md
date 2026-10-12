@@ -18,6 +18,7 @@ deleting safely to trash, restoring deleted sessions, and packaging the GUI as a
 - Delete to trash by default, then restore or permanently purge later.
 - Filter sessions by project, working directory, title, source, and more.
 - Summarize sessions per project for quick cleanup.
+- Use a bilingual GUI with automatic system-language detection and manual override.
 - Build a GUI binary for Windows, macOS, or Linux with the included PyInstaller script.
 
 ## Project Layout
@@ -108,11 +109,20 @@ Launch the GUI:
 python manage_codex_sessions.py gui
 ```
 
+Force the GUI language:
+
+```bash
+python manage_codex_sessions.py gui --lang en
+python manage_codex_sessions.py gui --lang zh-CN
+```
+
 Or run the dedicated GUI entry point:
 
 ```bash
 python manage_codex_sessions_gui.py
 ```
+
+You can also set `CODEX_UI_LANG=en` or `CODEX_UI_LANG=zh-CN` before launching.
 
 ## GUI Features
 
@@ -121,6 +131,7 @@ python manage_codex_sessions_gui.py
 - Project filter and free-text search.
 - In-place rename flow by double-clicking the `Thread` column.
 - Restore, purge, and bulk delete actions.
+- English and Simplified Chinese UI support.
 - Single-instance lock to prevent duplicate GUI windows.
 
 ## Cross-Platform Build
