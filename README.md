@@ -20,7 +20,7 @@ deleting safely to trash, restoring deleted sessions, and packaging the GUI as a
 - Filter sessions by project, working directory, title, source, and more.
 - Summarize sessions per project for quick cleanup.
 - Use the CLI in English or Simplified Chinese with `--lang` or `CODEX_LANG`.
-- Use a bilingual GUI with automatic system-language detection and manual override.
+- Use a bilingual GUI with an in-window language switcher; the GUI defaults to Simplified Chinese.
 - Build a GUI binary for Windows, macOS, or Linux with the included PyInstaller script.
 
 ## Project Layout
@@ -151,6 +151,8 @@ python manage_codex_sessions.py gui --lang en
 python manage_codex_sessions.py gui --lang zh-CN
 ```
 
+The GUI also shows a language switcher in the top bar. If you do not pass any GUI language override, it starts in Simplified Chinese by default.
+
 Or run the dedicated GUI entry point:
 
 ```bash
@@ -168,6 +170,7 @@ For GUI-only override, set `CODEX_UI_LANG=en` or `CODEX_UI_LANG=zh-CN` before la
 - In-place rename flow by double-clicking the `Thread` column.
 - Restore, purge, and bulk delete actions.
 - English and Simplified Chinese CLI support.
+- Top-bar GUI language switch between Simplified Chinese and English.
 - English and Simplified Chinese UI support.
 - Single-instance lock to prevent duplicate GUI windows.
 

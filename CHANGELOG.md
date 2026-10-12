@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.1.0] - 2026-10-12
+
+### Added
+
+- In-window GUI language switcher for Simplified Chinese and English.
+- Bundled application icon asset for the GUI window and PyInstaller builds.
+
+### Changed
+
+- GUI now defaults to Simplified Chinese when no explicit GUI language override is provided.
+- PyInstaller builds now embed the checked-in application icon and bundle it for runtime use.
+
 ## [1.0.0] - 2026-10-12
 
 ### Added

@@ -5,6 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import build_manage_codex_sessions_gui as build_app
 import manage_codex_sessions as app
 
 
@@ -171,3 +172,32 @@ def test_cli_and_gui_report_version() -> None:
 
     assert app.__version__ in cli_result.stdout
     assert app.__version__ in gui_result.stdout
+
+
+def test_gui_defaults_to_simplified_chinese_without_overrides(monkeypatch) -> None:
+    monkeypatch.delenv("CODEX_UI_LANG", raising=False)
+    monkeypatch.delenv("CODEX_LANG", raising=False)
+
+    assert app.normalize_gui_language(None, system_locale_name="en_US") == "zh-CN"
+
+
+def test_gui_language_override_env_is_still_respected(monkeypatch) -> None:
+    monkeypatch.setenv("CODEX_UI_LANG", "en")
+    monkeypatch.delenv("CODEX_LANG", raising=False)
+
+    assert app.normalize_gui_language(None, system_locale_name="zh_CN") == "en"
+
+
+def test_build_pyinstaller_command_includes_icon_and_bundled_asset() -> None:
+    command = build_app.build_pyinstaller_command(False, sys.executable, [])
+
+    assert "--icon" in command
+    assert str(build_app.ICON_PATH) in command
+    add_data_index = command.index("--add-data")
+    add_data_value = command[add_data_index + 1]
+    expected_separator = ";" if sys.platform.startswith("win") else ":"
+    assert add_data_value == f"{build_app.ICON_PATH}{expected_separator}assets"
+
+
+def test_application_icon_asset_exists() -> None:
+    assert app.resolve_runtime_asset_path(app.APP_ICON_RELATIVE_PATH).exists()

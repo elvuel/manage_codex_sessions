@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Any, Iterable
 
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
+APP_ICON_RELATIVE_PATH = Path("assets") / "manage_codex_sessions.ico"
 
 
 def configure_stdout() -> None:
@@ -85,6 +86,16 @@ def resolve_codex_home(codex_home: str | None) -> Path:
     return Path(codex_home).expanduser() if codex_home else default_codex_home()
 
 
+def resolve_runtime_asset_path(relative_path: str | Path) -> Path:
+    candidate = Path(relative_path)
+    bundle_root = getattr(sys, "_MEIPASS", None)
+    if bundle_root is not None:
+        bundled = Path(str(bundle_root)) / candidate
+        if bundled.exists():
+            return bundled
+    return Path(__file__).resolve().parent / candidate
+
+
 GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
     "en": {
         "window_title": "Codex Session Manager",
@@ -104,6 +115,9 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "header_cwd": "CWD",
         "browse": "Browse",
         "refresh": "Refresh",
+        "language_label": "Language",
+        "language_option_zh_cn": "简体中文",
+        "language_option_en": "English",
         "qt_backend": "Qt: {binding_name}",
         "active_title": "Active Sessions",
         "trash_title": "Trash",
@@ -173,6 +187,9 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "header_cwd": "CWD",
         "browse": "浏览",
         "refresh": "刷新",
+        "language_label": "界面语言",
+        "language_option_zh_cn": "简体中文",
+        "language_option_en": "English",
         "qt_backend": "Qt: {binding_name}",
         "active_title": "活动 sessions",
         "trash_title": "回收站",
@@ -231,7 +248,7 @@ CLI_TRANSLATIONS: dict[str, dict[str, str]] = {
     "en": {
         "parser_description": "Manage local Codex sessions, trash, rename flows, and the Qt UI.",
         "lang_help": "Interface language: system, en, zh-CN. Defaults to CODEX_LANG or the system language.",
-        "gui_lang_help": "GUI language: system, en, zh-CN. Defaults to CODEX_UI_LANG, CODEX_LANG, or the system language.",
+        "gui_lang_help": "GUI language: system, en, zh-CN. Defaults to CODEX_UI_LANG, CODEX_LANG, or Simplified Chinese.",
         "codex_home_help": "Codex data directory. Defaults to CODEX_HOME or ~/.codex.",
         "id_help": "Exact match by session id. Can be passed multiple times.",
         "keyword_help": "Fuzzy match by session id, thread name, cwd, or project.",
@@ -303,7 +320,7 @@ CLI_TRANSLATIONS: dict[str, dict[str, str]] = {
     "zh-CN": {
         "parser_description": "管理本地 Codex sessions、回收站、重命名流程和 Qt 图形界面。",
         "lang_help": "界面语言：system、en、zh-CN。默认读取 CODEX_LANG 或系统语言。",
-        "gui_lang_help": "GUI 语言：system、en、zh-CN。默认读取 CODEX_UI_LANG、CODEX_LANG 或系统语言。",
+        "gui_lang_help": "GUI 语言：system、en、zh-CN。默认读取 CODEX_UI_LANG、CODEX_LANG，否则使用简体中文。",
         "codex_home_help": "Codex 数据目录，默认读取 CODEX_HOME 或 ~/.codex。",
         "id_help": "按 session id 精确匹配，可重复传入。",
         "keyword_help": "按 session id、thread name、cwd、project 模糊匹配。",
@@ -429,6 +446,8 @@ def cli_text(key: str, **kwargs: object) -> str:
 
 
 def normalize_gui_language(language: str | None, *, system_locale_name: str | None = None) -> str:
+    if language is None and not any(os.environ.get(name) for name in ("CODEX_UI_LANG", "CODEX_LANG")):
+        return "zh-CN"
     return normalize_language(
         language,
         environment_keys=("CODEX_UI_LANG", "CODEX_LANG"),
@@ -1335,25 +1354,25 @@ def command_rename(args: argparse.Namespace) -> int:
     return 0
 
 
-def load_qt_binding() -> tuple[str, Any, Any]:
+def load_qt_binding() -> tuple[str, Any, Any, Any]:
     candidates = ("PySide6", "PyQt6", "PyQt5")
     errors: list[str] = []
     for name in candidates:
         try:
             if name == "PySide6":
-                from PySide6 import QtCore, QtWidgets  # type: ignore
+                from PySide6 import QtCore, QtGui, QtWidgets  # type: ignore
             elif name == "PyQt6":
-                from PyQt6 import QtCore, QtWidgets  # type: ignore
+                from PyQt6 import QtCore, QtGui, QtWidgets  # type: ignore
             else:
-                from PyQt5 import QtCore, QtWidgets  # type: ignore
-            return name, QtCore, QtWidgets
+                from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
+            return name, QtCore, QtGui, QtWidgets
         except ImportError as exc:
             errors.append(f"{name}: {exc}")
     raise RuntimeError(cli_text("qt_missing", errors="; ".join(errors)))
 
 
 def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
-    binding_name, QtCore, QtWidgets = load_qt_binding()
+    binding_name, QtCore, QtGui, QtWidgets = load_qt_binding()
     qlocale = getattr(QtCore, "QLocale", None)
     system_locale_name = qlocale.system().name() if qlocale and hasattr(qlocale, "system") else None
     ui_language = normalize_gui_language(language, system_locale_name=system_locale_name)
@@ -1410,10 +1429,11 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
         return lock_file
 
     class SessionPanel(QtWidgets.QWidget):
-        def __init__(self, *, include_deleted_at: bool, button_specs: list[tuple[str, str]], title: str) -> None:
+        def __init__(self, *, include_deleted_at: bool, button_specs: list[tuple[str, str]], title_key: str) -> None:
             super().__init__()
             self.include_deleted_at = include_deleted_at
-            self.title = title
+            self.title_key = title_key
+            self.title = t(title_key)
             self.all_sessions: list[SessionSummary] = []
             self.visible_sessions: list[SessionSummary] = []
             self.session_by_id: dict[str, SessionSummary] = {}
@@ -1423,11 +1443,13 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             layout = QtWidgets.QVBoxLayout(self)
 
             filter_layout = QtWidgets.QHBoxLayout()
-            filter_layout.addWidget(QtWidgets.QLabel(t("filter_project_label")))
+            self.project_label = QtWidgets.QLabel(t("filter_project_label"))
+            filter_layout.addWidget(self.project_label)
             self.project_combo = QtWidgets.QComboBox()
             self.project_combo.addItem(t("all_projects"), "")
             filter_layout.addWidget(self.project_combo)
-            filter_layout.addWidget(QtWidgets.QLabel(t("filter_search_label")))
+            self.search_label = QtWidgets.QLabel(t("filter_search_label"))
+            filter_layout.addWidget(self.search_label)
             self.filter_edit = QtWidgets.QLineEdit()
             self.filter_edit.setPlaceholderText(t("filter_placeholder"))
             filter_layout.addWidget(self.filter_edit, 1)
@@ -1465,8 +1487,9 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
 
             button_layout = QtWidgets.QHBoxLayout()
             self.buttons: dict[str, Any] = {}
-            for key, label in button_specs:
-                button = QtWidgets.QPushButton(label)
+            self.button_label_keys = {key: label_key for key, label_key in button_specs}
+            for key, label_key in button_specs:
+                button = QtWidgets.QPushButton(t(label_key))
                 self.buttons[key] = button
                 button_layout.addWidget(button)
             button_layout.addStretch(1)
@@ -1501,6 +1524,32 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.refresh_project_options()
             self.apply_filter()
 
+        def retranslate(self) -> None:
+            self.title = t(self.title_key)
+            self.project_label.setText(t("filter_project_label"))
+            self.search_label.setText(t("filter_search_label"))
+            self.filter_edit.setPlaceholderText(t("filter_placeholder"))
+            headers = [t("header_project"), t("header_updated")]
+            if self.include_deleted_at:
+                headers.append(t("header_deleted"))
+            headers.extend(
+                [
+                    t("header_files"),
+                    t("header_size"),
+                    t("header_source"),
+                    t("header_session_id"),
+                    t("header_thread"),
+                    t("header_cwd"),
+                ]
+            )
+            self.session_id_column = headers.index(t("header_session_id"))
+            self.thread_column = headers.index(t("header_thread"))
+            self.table.setHorizontalHeaderLabels(headers)
+            for key, label_key in self.button_label_keys.items():
+                self.buttons[key].setText(t(label_key))
+            self.refresh_project_options()
+            self.populate_table()
+
         def refresh_project_options(self) -> None:
             current_value = self.project_combo.currentData()
             projects = sorted({session.primary_project for session in self.all_sessions})
@@ -1532,7 +1581,8 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.table.setRowCount(len(self.visible_sessions))
 
             for row, session in enumerate(self.visible_sessions):
-                values = [session.primary_project, format_timestamp(session.updated_at)]
+                project_value = t("unknown_project") if session.primary_project == "-" else session.primary_project
+                values = [project_value, format_timestamp(session.updated_at)]
                 if self.include_deleted_at:
                     values.append(format_timestamp(session.deleted_at))
                 values.extend([
@@ -1593,13 +1643,18 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             root_layout = QtWidgets.QVBoxLayout(self)
 
             path_layout = QtWidgets.QHBoxLayout()
-            path_layout.addWidget(QtWidgets.QLabel("CODEX_HOME"))
+            self.codex_home_label = QtWidgets.QLabel("CODEX_HOME")
+            path_layout.addWidget(self.codex_home_label)
             self.codex_home_edit = QtWidgets.QLineEdit(str(initial_codex_home))
             path_layout.addWidget(self.codex_home_edit, 1)
             self.browse_button = QtWidgets.QPushButton(t("browse"))
             self.refresh_button = QtWidgets.QPushButton(t("refresh"))
             path_layout.addWidget(self.browse_button)
             path_layout.addWidget(self.refresh_button)
+            self.language_label = QtWidgets.QLabel(t("language_label"))
+            path_layout.addWidget(self.language_label)
+            self.language_combo = QtWidgets.QComboBox()
+            path_layout.addWidget(self.language_combo)
             root_layout.addLayout(path_layout)
 
             self.info_label = QtWidgets.QLabel(t("qt_backend", binding_name=binding_name))
@@ -1608,24 +1663,24 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.tabs = QtWidgets.QTabWidget()
             self.active_panel = SessionPanel(
                 include_deleted_at=False,
-                title=t("active_title"),
+                title_key="active_title",
                 button_specs=[
-                    ("select_all", t("select_all")),
-                    ("clear_selection", t("clear_selection")),
-                    ("rename", t("rename")),
-                    ("delete", t("delete_to_trash")),
+                    ("select_all", "select_all"),
+                    ("clear_selection", "clear_selection"),
+                    ("rename", "rename"),
+                    ("delete", "delete_to_trash"),
                 ],
             )
             self.trash_panel = SessionPanel(
                 include_deleted_at=True,
-                title=t("trash_title"),
+                title_key="trash_title",
                 button_specs=[
-                    ("select_all", t("select_all")),
-                    ("clear_selection", t("clear_selection")),
-                    ("rename", t("rename")),
-                    ("restore", t("restore_selected")),
-                    ("purge_selected", t("purge_selected")),
-                    ("purge_all", t("purge_all")),
+                    ("select_all", "select_all"),
+                    ("clear_selection", "clear_selection"),
+                    ("rename", "rename"),
+                    ("restore", "restore_selected"),
+                    ("purge_selected", "purge_selected"),
+                    ("purge_all", "purge_all"),
                 ],
             )
             self.tabs.addTab(self.active_panel, t("active_title"))
@@ -1637,6 +1692,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
 
             self.browse_button.clicked.connect(self.choose_codex_home)
             self.refresh_button.clicked.connect(self.reload_all)
+            self.language_combo.currentIndexChanged.connect(self.change_gui_language_from_picker)
             self.tabs.currentChanged.connect(self.update_status)
             self.active_panel.on_state_changed = self.update_status
             self.trash_panel.on_state_changed = self.update_status
@@ -1650,7 +1706,43 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.trash_panel.buttons["purge_selected"].clicked.connect(self.purge_trash_selected)
             self.trash_panel.buttons["purge_all"].clicked.connect(self.purge_trash_all)
 
+            self.refresh_language_options()
             self.reload_all()
+
+        def refresh_language_options(self) -> None:
+            self.language_combo.blockSignals(True)
+            self.language_combo.clear()
+            self.language_combo.addItem(t("language_option_zh_cn"), "zh-CN")
+            self.language_combo.addItem(t("language_option_en"), "en")
+            index = self.language_combo.findData(ui_language)
+            self.language_combo.setCurrentIndex(index if index >= 0 else 0)
+            self.language_combo.blockSignals(False)
+
+        def change_gui_language_from_picker(self) -> None:
+            selected = self.language_combo.currentData()
+            if selected:
+                self.set_gui_language(str(selected))
+
+        def set_gui_language(self, language_code: str) -> None:
+            nonlocal ui_language
+            normalized = normalize_gui_language(language_code, system_locale_name=system_locale_name)
+            if normalized == ui_language:
+                return
+            ui_language = normalized
+            self.retranslate_ui()
+
+        def retranslate_ui(self) -> None:
+            self.setWindowTitle(t("window_title"))
+            self.browse_button.setText(t("browse"))
+            self.refresh_button.setText(t("refresh"))
+            self.language_label.setText(t("language_label"))
+            self.info_label.setText(t("qt_backend", binding_name=binding_name))
+            self.refresh_language_options()
+            self.active_panel.retranslate()
+            self.trash_panel.retranslate()
+            self.tabs.setTabText(self.tabs.indexOf(self.active_panel), t("active_title"))
+            self.tabs.setTabText(self.tabs.indexOf(self.trash_panel), t("trash_title"))
+            self.update_status()
 
         def resolve_current_codex_home(self) -> Path:
             return resolve_codex_home(self.codex_home_edit.text().strip() or None)
@@ -1836,6 +1928,13 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
     if app is None:
         app = QtWidgets.QApplication(sys.argv)
 
+    icon = None
+    icon_path = resolve_runtime_asset_path(APP_ICON_RELATIVE_PATH)
+    if icon_path.exists():
+        icon = QtGui.QIcon(str(icon_path))
+        if hasattr(icon, "isNull") and not icon.isNull() and hasattr(app, "setWindowIcon"):
+            app.setWindowIcon(icon)
+
     instance_lock = acquire_gui_instance_lock()
     if instance_lock is None:
         QtWidgets.QMessageBox.information(None, t("already_running_title"), t("already_running_body"))
@@ -1845,6 +1944,8 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
         app.aboutToQuit.connect(instance_lock.unlock)
 
     window = SessionManagerWindow(codex_home)
+    if icon is not None and hasattr(icon, "isNull") and not icon.isNull() and hasattr(window, "setWindowIcon"):
+        window.setWindowIcon(icon)
     window._instance_lock = instance_lock
     window.show()
     if owns_app:
@@ -1855,7 +1956,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
 def command_gui(args: argparse.Namespace) -> int:
     codex_home = resolve_codex_home(args.codex_home)
     try:
-        return launch_gui(codex_home, language=getattr(args, "lang", None))
+        return launch_gui(codex_home, language=getattr(args, "lang_override", None) or getattr(args, "requested_lang", None))
     except RuntimeError as exc:
         print(str(exc), file=sys.stderr)
         return 2
@@ -1967,8 +2068,10 @@ def build_parser(language: str | None = None) -> argparse.ArgumentParser:
 
 def main() -> int:
     configure_stdout()
+    requested_lang = detect_requested_language()
     parser = build_parser()
     args = parser.parse_args()
+    args.requested_lang = requested_lang
     args.lang = set_cli_language(getattr(args, "lang_override", None) or getattr(args, "lang", None))
     return args.func(args)
 

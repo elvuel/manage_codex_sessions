@@ -11,6 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent
 ENTRY_SCRIPT = REPO_ROOT / "manage_codex_sessions_gui.py"
 BUILD_REQUIREMENTS = REPO_ROOT / "requirements-build.txt"
 APP_NAME = "manage_codex_sessions_gui"
+ICON_PATH = REPO_ROOT / "assets" / "manage_codex_sessions.ico"
 HIDDEN_IMPORTS = [
     "PySide6",
     "PySide6.QtCore",
@@ -54,6 +55,11 @@ def build_pyinstaller_command(one_dir: bool, python_executable: str, extra_args:
     ]
 
     command.append("--onedir" if one_dir else "--onefile")
+
+    if ICON_PATH.exists():
+        add_data_separator = ";" if sys.platform.startswith("win") else ":"
+        command.extend(["--icon", str(ICON_PATH)])
+        command.extend(["--add-data", f"{ICON_PATH}{add_data_separator}assets"])
 
     for module_name in HIDDEN_IMPORTS:
         command.extend(["--hidden-import", module_name])
