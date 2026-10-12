@@ -169,6 +169,17 @@ python build_manage_codex_sessions_gui.py --onedir --skip-dependency-install
 python build_manage_codex_sessions_gui.py -- --icon app.ico
 ```
 
+## Release 自动化
+
+推送新的 Git tag 后，GitHub Actions 会自动构建 Windows、macOS、Linux 三个平台的发布产物，并发布到 GitHub Release：
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+其中 Windows 产物会打包为 `.zip`，Linux 和 macOS 产物会打包为 `.tar.gz`。
+
 ## Windows PowerShell 快捷用法
 
 构建单文件产物：

@@ -170,6 +170,17 @@ Pass extra flags through to PyInstaller:
 python build_manage_codex_sessions_gui.py -- --icon app.ico
 ```
 
+## Release Automation
+
+Pushing a new Git tag automatically builds Windows, macOS, and Linux release artifacts and publishes them to a GitHub Release:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The workflow packages Windows builds as `.zip` and Linux/macOS builds as `.tar.gz`.
+
 ## Windows PowerShell Shortcut
 
 Single-file build:
