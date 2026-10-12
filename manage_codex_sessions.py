@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import Any, Iterable
 
 
+__version__ = "1.0.0rc1"
+
+
 def configure_stdout() -> None:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -1893,6 +1896,7 @@ def build_parser(language: str | None = None) -> argparse.ArgumentParser:
         return format_localized_text(CLI_TRANSLATIONS, build_language, key, **kwargs)
 
     parser = argparse.ArgumentParser(description=localize("parser_description"))
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     add_language_argument(parser, help_text=localize("lang_help"), dest="lang")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -1931,7 +1935,7 @@ def build_parser(language: str | None = None) -> argparse.ArgumentParser:
 
     delete_all_parser = subparsers.add_parser(
         "delete-all",
-        aliases=["delete_all", "delte_all"],
+        aliases=["delete_all"],
         help=localize("delete_all_help"),
     )
     add_language_argument(delete_all_parser, help_text=localize("lang_help"))

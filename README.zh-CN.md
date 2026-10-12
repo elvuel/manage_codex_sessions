@@ -28,6 +28,9 @@
 - `manage_codex_sessions_gui.py` —— 精简 GUI 启动入口，适合直接打包。
 - `build_manage_codex_sessions_gui.py` —— 跨平台 PyInstaller 构建脚本。
 - `build_manage_codex_sessions_gui.ps1` —— 面向 Windows 用户的 PowerShell 包装脚本。
+- `pyproject.toml` —— 项目元数据、可编辑安装配置和测试设置。
+- `tests/` —— 核心 session 流程的自动化回归测试。
+- `CHANGELOG.md` —— 版本变更历史与里程碑摘要。
 - `requirements-build.txt` —— 构建阶段依赖清单。
 
 ## 环境要求
@@ -53,6 +56,29 @@ python -m pip install PySide6
 ```bash
 python -m pip install -r requirements-build.txt
 ```
+
+如需以可编辑模式安装并带上开发工具：
+
+```bash
+python -m pip install -e ".[dev]"
+```
+
+## 开发
+
+运行自动化测试：
+
+```bash
+python -m pytest
+```
+
+查看当前 CLI 或 GUI 启动器版本：
+
+```bash
+python manage_codex_sessions.py --version
+python manage_codex_sessions_gui.py --version
+```
+
+版本说明与里程碑历史记录在 `CHANGELOG.md`。
 
 ## CLI 快速开始
 

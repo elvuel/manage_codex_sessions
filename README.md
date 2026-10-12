@@ -29,6 +29,9 @@ deleting safely to trash, restoring deleted sessions, and packaging the GUI as a
 - `manage_codex_sessions_gui.py` — minimal GUI launcher, ideal for packaging.
 - `build_manage_codex_sessions_gui.py` — cross-platform build script for PyInstaller.
 - `build_manage_codex_sessions_gui.ps1` — PowerShell wrapper for Windows users.
+- `pyproject.toml` — project metadata, editable install config, and test settings.
+- `tests/` — automated regression coverage for the core session flows.
+- `CHANGELOG.md` — release history and milestone summary.
 - `requirements-build.txt` — build-time dependencies.
 
 ## Requirements
@@ -54,6 +57,29 @@ Install packaging dependencies too:
 ```bash
 python -m pip install -r requirements-build.txt
 ```
+
+Install the project in editable mode with development tools:
+
+```bash
+python -m pip install -e ".[dev]"
+```
+
+## Development
+
+Run the automated test suite:
+
+```bash
+python -m pytest
+```
+
+Show the current CLI or GUI launcher version:
+
+```bash
+python manage_codex_sessions.py --version
+python manage_codex_sessions_gui.py --version
+```
+
+Track release notes and milestone history in `CHANGELOG.md`.
 
 ## CLI Quick Start
 

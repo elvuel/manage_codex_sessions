@@ -15,6 +15,7 @@ env/
 build/
 dist/
 *.spec
+*.egg-info/
 
 # IDE / editor
 .vscode/
