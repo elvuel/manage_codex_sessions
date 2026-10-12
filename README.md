@@ -8,18 +8,19 @@
 - 默认删除到回收站
 - 从回收站恢复 / 清空回收站
 - 按项目筛选和查看
-- 打包为无需预装 Qt 的 Windows GUI 可执行文件
+- 打包为无需预装 Qt 的 GUI 可执行文件 / 应用包
 
 ## 文件说明
 
 - `manage_codex_sessions.py`：主程序，提供 CLI 和 GUI 逻辑
 - `manage_codex_sessions_gui.py`：GUI 启动入口，适合直接打包 exe
-- `build_manage_codex_sessions_gui.ps1`：Windows 一键打包脚本
+- `build_manage_codex_sessions_gui.py`：跨平台一键打包脚本
+- `build_manage_codex_sessions_gui.ps1`：Windows PowerShell 包装脚本
 - `.gitignore`：Python / PyInstaller 构建忽略规则
 
 ## 环境要求
 
-- Windows
+- Windows / macOS / Linux
 - Python 3.14+
 
 GUI 依赖：
@@ -119,7 +120,33 @@ GUI 支持：
 - 按项目筛选
 - 单实例运行
 
-## 打包为 Windows exe
+## 跨平台打包
+
+默认打成单文件 GUI 产物：
+
+```bash
+python build_manage_codex_sessions_gui.py
+```
+
+跳过依赖安装：
+
+```bash
+python build_manage_codex_sessions_gui.py --skip-dependency-install
+```
+
+打成目录模式：
+
+```bash
+python build_manage_codex_sessions_gui.py --onedir --skip-dependency-install
+```
+
+如果需要向 PyInstaller 透传额外参数：
+
+```bash
+python build_manage_codex_sessions_gui.py -- --icon app.ico
+```
+
+## Windows PowerShell 用法
 
 默认打成单文件 GUI exe：
 
@@ -141,8 +168,9 @@ powershell -ExecutionPolicy Bypass -File .\build_manage_codex_sessions_gui.ps1 -
 
 输出产物：
 
-- `dist\manage_codex_sessions_gui.exe`
-- 或 `dist\manage_codex_sessions_gui\`
+- Windows：`dist\manage_codex_sessions_gui.exe` 或 `dist\manage_codex_sessions_gui\`
+- Linux：`dist/manage_codex_sessions_gui` 或 `dist/manage_codex_sessions_gui/`
+- macOS：通常位于 `dist/manage_codex_sessions_gui` 或 `dist/manage_codex_sessions_gui.app`
 
 ## 数据位置
 

@@ -21,6 +21,7 @@ dist/
 .idea/
 *.swp
 *.swo
+.codebase-memory/
 
 # OS
 .DS_Store
