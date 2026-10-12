@@ -17,6 +17,7 @@
 - 默认删除到回收站，之后可恢复或永久清理。
 - 支持按项目、工作目录、标题、来源等条件筛选。
 - 支持按项目汇总 sessions，便于集中清理。
+- CLI 支持通过 `--lang` 或 `CODEX_LANG` 在中英文之间切换。
 - GUI 支持中英文界面，可自动跟随系统语言，也可手动切换。
 - 自带 PyInstaller 脚本，可为 Windows、macOS、Linux 构建 GUI 产物。
 
@@ -58,6 +59,13 @@ python -m pip install -r requirements-build.txt
 
 ```bash
 python manage_codex_sessions.py query
+```
+
+手动指定 CLI 语言：
+
+```bash
+python manage_codex_sessions.py query --lang en
+python manage_codex_sessions.py query --lang zh-CN
 ```
 
 查看回收站 sessions：
@@ -121,7 +129,8 @@ python manage_codex_sessions.py gui --lang zh-CN
 python manage_codex_sessions_gui.py
 ```
 
-也可以在启动前设置 `CODEX_UI_LANG=en` 或 `CODEX_UI_LANG=zh-CN`。
+也可以通过 `CODEX_LANG=en` 或 `CODEX_LANG=zh-CN` 同时控制 CLI 和 GUI 语言。
+如果只想覆盖 GUI 语言，可在启动前设置 `CODEX_UI_LANG=en` 或 `CODEX_UI_LANG=zh-CN`。
 
 ## GUI 功能
 
@@ -130,6 +139,7 @@ python manage_codex_sessions_gui.py
 - 支持项目筛选和全文搜索。
 - 双击 `Thread` 列即可进入重命名流程。
 - 支持恢复、永久删除、批量删除等操作。
+- 支持 CLI 中英文输出。
 - 支持英文和简体中文界面。
 - 带单实例锁，避免重复打开多个 GUI 窗口。
 

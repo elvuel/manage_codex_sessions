@@ -1,12 +1,25 @@
 import argparse
 
-from manage_codex_sessions import configure_stdout, launch_gui, resolve_codex_home
+from manage_codex_sessions import (
+    CLI_TRANSLATIONS,
+    configure_stdout,
+    detect_requested_language,
+    format_localized_text,
+    launch_gui,
+    normalize_language,
+    resolve_codex_home,
+)
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Launch the manage_codex_sessions Qt GUI.")
-    parser.add_argument("--codex-home", help="Codex data directory. Defaults to CODEX_HOME or ~/.codex.")
-    parser.add_argument("--lang", help="GUI language: system, en, zh-CN. Defaults to system or CODEX_UI_LANG.")
+def build_parser(language: str | None = None) -> argparse.ArgumentParser:
+    build_language = normalize_language(language or detect_requested_language(), environment_keys=("CODEX_LANG",))
+
+    def localize(key: str, **kwargs: object) -> str:
+        return format_localized_text(CLI_TRANSLATIONS, build_language, key, **kwargs)
+
+    parser = argparse.ArgumentParser(description=localize("standalone_gui_description"))
+    parser.add_argument("--codex-home", help=localize("codex_home_help"))
+    parser.add_argument("--lang", metavar="LANG", help=localize("gui_lang_help"))
     return parser
 
 

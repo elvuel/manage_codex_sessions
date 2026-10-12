@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import locale
 import os
 import sys
 from dataclasses import dataclass, field
@@ -129,6 +130,10 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "delete_complete_title": "Delete Complete",
         "delete_action_moved": "Moved to trash",
         "delete_action_permanent": "Permanently deleted",
+        "delete_action_move_verb": "move to trash",
+        "delete_action_permanent_verb": "permanently delete",
+        "restore_action": "restore",
+        "purge_from_trash_action": "permanently delete from trash",
         "delete_summary": "{action} {session_count} session(s), {deleted_file_count} rollout file(s), and {removed_index_entry_count} index record(s).",
         "confirm_restore_title": "Confirm Restore",
         "confirm_restore_body": "Restore the selected {count} session(s)?",
@@ -194,6 +199,11 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "delete_complete_title": "删除完成",
         "delete_action_moved": "移入回收站",
         "delete_action_permanent": "已永久删除",
+        "delete_action_move_verb": "移入回收站",
+        "delete_action_permanent_verb": "永久删除",
+        "restore_action": "恢复",
+        "purge_from_trash_action": "从回收站永久删除",
+        "standalone_gui_description": "启动 manage_codex_sessions 的 Qt GUI。",
         "delete_summary": "{action} {session_count} 个 session，{deleted_file_count} 个 rollout 文件，{removed_index_entry_count} 条索引记录。",
         "confirm_restore_title": "确认恢复",
         "confirm_restore_body": "确认恢复所选 {count} 个 session 吗？",
@@ -214,21 +224,217 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
     },
 }
 
+CLI_TRANSLATIONS: dict[str, dict[str, str]] = {
+    "en": {
+        "parser_description": "Manage local Codex sessions, trash, rename flows, and the Qt UI.",
+        "lang_help": "Interface language: system, en, zh-CN. Defaults to CODEX_LANG or the system language.",
+        "gui_lang_help": "GUI language: system, en, zh-CN. Defaults to CODEX_UI_LANG, CODEX_LANG, or the system language.",
+        "codex_home_help": "Codex data directory. Defaults to CODEX_HOME or ~/.codex.",
+        "id_help": "Exact match by session id. Can be passed multiple times.",
+        "keyword_help": "Fuzzy match by session id, thread name, cwd, or project.",
+        "project_help": "Fuzzy match by project path.",
+        "cwd_help": "Fuzzy match by cwd.",
+        "before_help": "Only match sessions with updated_at earlier than this timestamp, for example 2026-10-01T00:00:00Z.",
+        "after_help": "Only match sessions with updated_at later than this timestamp, for example 2026-10-01T00:00:00Z.",
+        "missing_files_help": "Only match sessions without rollout files.",
+        "with_files_help": "Only match sessions that have rollout files.",
+        "limit_help": "Maximum number of sessions to return. Default: {default_limit}; pass -1 for no limit.",
+        "query_help": "List active sessions.",
+        "trash_help": "List trashed sessions.",
+        "projects_help": "Summarize sessions by project.",
+        "rename_help": "Rename a session.",
+        "delete_help": "Delete active sessions. Moves them to trash by default.",
+        "delete_all_help": "Delete all active sessions. Moves them to trash by default.",
+        "restore_help": "Restore sessions from trash.",
+        "empty_trash_help": "Permanently delete sessions from trash.",
+        "gui_help": "Launch the Qt GUI for managing sessions.",
+        "standalone_gui_description": "Launch the manage_codex_sessions Qt GUI.",
+        "json_help": "Output JSON.",
+        "show_files_help": "Include rollout file paths for each session.",
+        "trash_show_files_help": "Include trashed file paths for each session.",
+        "projects_trash_help": "Summarize trashed sessions instead of active sessions.",
+        "rename_id_help": "Target session id.",
+        "rename_name_help": "New session name.",
+        "rename_trash_help": "Rename a session in trash.",
+        "dry_run_help": "Preview sessions and files that would be deleted.",
+        "yes_help": "Skip interactive confirmation.",
+        "permanent_help": "Delete permanently without moving through trash.",
+        "restore_all_help": "Restore all trashed sessions.",
+        "empty_trash_all_help": "Permanently delete all trashed sessions.",
+        "no_matching_sessions": "No matching sessions.",
+        "no_projects": "No projects to display.",
+        "header_project": "Project",
+        "header_updated": "Updated",
+        "header_deleted": "Deleted",
+        "header_files": "Files",
+        "header_size": "Size",
+        "header_source": "Source",
+        "header_session_id": "Session ID",
+        "header_thread": "Thread",
+        "cwd_label": "cwd",
+        "file_label": "file",
+        "project_column": "Project",
+        "sessions_column": "Sessions",
+        "delete_action_moved": "Moved to trash",
+        "delete_action_permanent": "Permanently deleted",
+        "delete_summary": "{action} {session_count} session(s), {deleted_file_count} rollout file(s), and {removed_index_entry_count} index record(s).",
+        "restore_summary": "Restored {restored_session_count} session(s), {restored_file_count} rollout file(s), and {restored_index_entry_count} index record(s){suffix}.",
+        "restore_summary_skipped": "; skipped {count} conflicted session(s): {ids}",
+        "purge_summary": "Permanently deleted {session_count} trashed session(s) and {deleted_file_count} rollout file(s).",
+        "confirm_will": "About to {action} these sessions:",
+        "confirm_more_sessions": "... {count} more sessions",
+        "confirm_prompt": "Continue? Type yes to confirm: ",
+        "summary_active": "Total {count} active session(s), CODEX_HOME={codex_home}",
+        "summary_trash": "Total {count} trashed session(s), CODEX_HOME={codex_home}",
+        "no_delete_targets": "No matching sessions. Nothing was deleted.",
+        "dry_run_delete": "dry-run: would {action} {session_count} session(s) and {file_count} rollout file(s).",
+        "cancelled": "Operation cancelled.",
+        "no_restore_targets": "No matching trashed sessions. Nothing was restored.",
+        "no_empty_trash_targets": "No matching trashed sessions. Nothing was permanently deleted.",
+        "rename_scope_trash": "trash",
+        "rename_scope_active": "active sessions",
+        "rename_missing": "Session not found in {scope}: {session_id}",
+        "rename_success": "Renamed session {session_id} to: {name}",
+        "qt_missing": "No Qt binding detected. Install PySide6, PyQt6, or PyQt5 first. Detection results: {errors}",
+    },
+    "zh-CN": {
+        "parser_description": "管理本地 Codex sessions、回收站、重命名流程和 Qt 图形界面。",
+        "lang_help": "界面语言：system、en、zh-CN。默认读取 CODEX_LANG 或系统语言。",
+        "gui_lang_help": "GUI 语言：system、en、zh-CN。默认读取 CODEX_UI_LANG、CODEX_LANG 或系统语言。",
+        "codex_home_help": "Codex 数据目录，默认读取 CODEX_HOME 或 ~/.codex。",
+        "id_help": "按 session id 精确匹配，可重复传入。",
+        "keyword_help": "按 session id、thread name、cwd、project 模糊匹配。",
+        "project_help": "按项目路径模糊匹配。",
+        "cwd_help": "按 cwd 模糊匹配。",
+        "before_help": "仅匹配 updated_at 早于该时间的 session，例如 2026-10-01T00:00:00Z。",
+        "after_help": "仅匹配 updated_at 晚于该时间的 session，例如 2026-10-01T00:00:00Z。",
+        "missing_files_help": "仅匹配没有 rollout 文件的 session。",
+        "with_files_help": "仅匹配存在 rollout 文件的 session。",
+        "limit_help": "返回的最大 session 数，默认 {default_limit}；传 -1 表示不限制。",
+        "query_help": "查询活动 sessions。",
+        "trash_help": "查询回收站 sessions。",
+        "projects_help": "按项目统计 sessions。",
+        "rename_help": "重命名 session。",
+        "delete_help": "删除活动 session，默认移入回收站。",
+        "delete_all_help": "删除全部活动 session，默认移入回收站。",
+        "restore_help": "从回收站恢复 session。",
+        "empty_trash_help": "从回收站永久删除 session。",
+        "gui_help": "启动 Qt 图形界面管理 sessions。",
+        "standalone_gui_description": "启动 manage_codex_sessions 的 Qt GUI。",
+        "json_help": "输出 JSON。",
+        "show_files_help": "输出每个 session 对应的 rollout 文件路径。",
+        "trash_show_files_help": "输出每个 session 对应的回收站文件路径。",
+        "projects_trash_help": "统计回收站中的 sessions。",
+        "rename_id_help": "目标 session id。",
+        "rename_name_help": "新的 session 名称。",
+        "rename_trash_help": "重命名回收站中的 session。",
+        "dry_run_help": "仅预览将删除的 session 和文件。",
+        "yes_help": "跳过交互确认。",
+        "permanent_help": "直接永久删除，不经过回收站。",
+        "restore_all_help": "恢复回收站全部 session。",
+        "empty_trash_all_help": "清空回收站全部 session。",
+        "no_matching_sessions": "没有匹配的 sessions。",
+        "no_projects": "没有可显示的项目。",
+        "header_project": "项目",
+        "header_updated": "更新时间",
+        "header_deleted": "删除时间",
+        "header_files": "文件数",
+        "header_size": "大小",
+        "header_source": "来源",
+        "header_session_id": "Session ID",
+        "header_thread": "Thread",
+        "cwd_label": "cwd",
+        "file_label": "file",
+        "project_column": "项目",
+        "sessions_column": "Sessions",
+        "delete_action_moved": "移入回收站",
+        "delete_action_permanent": "已永久删除",
+        "delete_summary": "{action} {session_count} 个 session，{deleted_file_count} 个 rollout 文件，{removed_index_entry_count} 条索引记录。",
+        "restore_summary": "已恢复 {restored_session_count} 个 session，{restored_file_count} 个 rollout 文件，{restored_index_entry_count} 条索引记录{suffix}。",
+        "restore_summary_skipped": "；跳过冲突 {count} 个：{ids}",
+        "purge_summary": "已从回收站永久删除 {session_count} 个 session，{deleted_file_count} 个 rollout 文件。",
+        "confirm_will": "将要{action}以下 sessions:",
+        "confirm_more_sessions": "... 其余 {count} 个 session",
+        "confirm_prompt": "继续吗？输入 yes 确认: ",
+        "summary_active": "共 {count} 个活动 session，CODEX_HOME={codex_home}",
+        "summary_trash": "共 {count} 个回收站 session，CODEX_HOME={codex_home}",
+        "no_delete_targets": "没有匹配的 sessions，未执行删除。",
+        "dry_run_delete": "dry-run: 将{action} {session_count} 个 session，{file_count} 个 rollout 文件。",
+        "cancelled": "已取消操作。",
+        "no_restore_targets": "没有匹配的回收站 session，未执行恢复。",
+        "no_empty_trash_targets": "没有匹配的回收站 session，未执行清空。",
+        "rename_scope_trash": "回收站",
+        "rename_scope_active": "活动列表",
+        "rename_missing": "未在{scope}找到 session: {session_id}",
+        "rename_success": "已将 session {session_id} 重命名为: {name}",
+        "qt_missing": "未检测到 Qt 绑定，请先安装 PySide6、PyQt6 或 PyQt5。当前探测结果: {errors}",
+    },
+}
 
-def normalize_gui_language(language: str | None, *, system_locale_name: str | None = None) -> str:
-    raw = (language or os.environ.get("CODEX_UI_LANG") or "system").strip()
+
+def current_system_locale_name() -> str | None:
+    try:
+        return locale.getlocale()[0]
+    except (ValueError, TypeError):
+        return None
+
+
+def normalize_language(
+    language: str | None,
+    *,
+    environment_keys: tuple[str, ...] = ("CODEX_LANG",),
+    system_locale_name: str | None = None,
+) -> str:
+    candidate = language
+    if candidate is None:
+        for env_name in environment_keys:
+            env_value = os.environ.get(env_name)
+            if env_value:
+                candidate = env_value
+                break
+    raw = (candidate or "system").strip()
     if not raw or raw.lower() in {"system", "auto", "default"}:
-        raw = system_locale_name or ""
+        raw = system_locale_name or current_system_locale_name() or ""
     normalized = raw.lower().replace("_", "-")
     if normalized.startswith("zh"):
         return "zh-CN"
     return "en"
 
 
-def format_gui_text(language: str, key: str, **kwargs: object) -> str:
-    translations = GUI_TRANSLATIONS.get(language, GUI_TRANSLATIONS["en"])
-    template = translations.get(key, GUI_TRANSLATIONS["en"][key])
+def format_localized_text(
+    translations: dict[str, dict[str, str]],
+    language: str,
+    key: str,
+    **kwargs: object,
+) -> str:
+    templates = translations.get(language, translations["en"])
+    template = templates.get(key, translations["en"][key])
     return template.format(**kwargs)
+
+
+CURRENT_CLI_LANGUAGE = normalize_language(None, environment_keys=("CODEX_LANG",))
+
+
+def set_cli_language(language: str | None) -> str:
+    global CURRENT_CLI_LANGUAGE
+    CURRENT_CLI_LANGUAGE = normalize_language(language, environment_keys=("CODEX_LANG",))
+    return CURRENT_CLI_LANGUAGE
+
+
+def cli_text(key: str, **kwargs: object) -> str:
+    return format_localized_text(CLI_TRANSLATIONS, CURRENT_CLI_LANGUAGE, key, **kwargs)
+
+
+def normalize_gui_language(language: str | None, *, system_locale_name: str | None = None) -> str:
+    return normalize_language(
+        language,
+        environment_keys=("CODEX_UI_LANG", "CODEX_LANG"),
+        system_locale_name=system_locale_name,
+    )
+
+
+def format_gui_text(language: str, key: str, **kwargs: object) -> str:
+    return format_localized_text(GUI_TRANSLATIONS, language, key, **kwargs)
 
 
 def active_sessions_dir(codex_home: Path) -> Path:
@@ -647,13 +853,21 @@ def build_project_stats(summaries: Iterable[SessionSummary]) -> list[tuple[str, 
 
 def print_sessions_table(sessions: list[SessionSummary], show_files: bool, *, include_deleted_at: bool = False) -> None:
     if not sessions:
-        print("没有匹配的 sessions。")
+        print(cli_text("no_matching_sessions"))
         return
 
-    headers = ["Project", "Updated"]
+    headers = [cli_text("header_project"), cli_text("header_updated")]
     if include_deleted_at:
-        headers.append("Deleted")
-    headers.extend(["Files", "Size", "Source", "Session ID", "Thread"])
+        headers.append(cli_text("header_deleted"))
+    headers.extend(
+        [
+            cli_text("header_files"),
+            cli_text("header_size"),
+            cli_text("header_source"),
+            cli_text("header_session_id"),
+            cli_text("header_thread"),
+        ]
+    )
 
     rows: list[list[str]] = []
     for session in sessions:
@@ -686,10 +900,10 @@ def print_sessions_table(sessions: list[SessionSummary], show_files: bool, *, in
 
     for session, row in zip(sessions, rows, strict=True):
         print("  ".join(truncate(value, widths[index]).ljust(widths[index]) for index, value in enumerate(row)))
-        print(f"    cwd: {session.primary_cwd}")
+        print(f"    {cli_text('cwd_label')}: {session.primary_cwd}")
         if show_files:
             for path in sorted(session.rollout_paths):
-                print(f"    file: {path}")
+                print(f"    {cli_text('file_label')}: {path}")
 
 
 def print_sessions_json(sessions: list[SessionSummary], show_files: bool) -> None:
@@ -699,40 +913,49 @@ def print_sessions_json(sessions: list[SessionSummary], show_files: bool) -> Non
 
 def print_projects_table(stats: list[tuple[str, int]]) -> None:
     if not stats:
-        print("没有可显示的项目。")
+        print(cli_text("no_projects"))
         return
 
-    project_width = max(len("Project"), min(max(len(project) for project, _ in stats), 72))
-    count_width = max(len("Sessions"), max(len(str(count)) for _, count in stats))
-    print(f"{'Project'.ljust(project_width)}  {'Sessions'.ljust(count_width)}")
+    project_header = cli_text("project_column")
+    sessions_header = cli_text("sessions_column")
+    project_width = max(len(project_header), min(max(len(project) for project, _ in stats), 72))
+    count_width = max(len(sessions_header), max(len(str(count)) for _, count in stats))
+    print(f"{project_header.ljust(project_width)}  {sessions_header.ljust(count_width)}")
     print(f"{'-' * project_width}  {'-' * count_width}")
     for project, count in stats:
         print(f"{truncate(project, project_width).ljust(project_width)}  {str(count).ljust(count_width)}")
 
 
 def format_delete_summary(result: DeleteResult, *, moved_to_trash: bool) -> str:
-    action = "移入回收站" if moved_to_trash else "已永久删除"
-    return (
-        f"{action} {result.session_count} 个 session，"
-        f"{result.deleted_file_count} 个 rollout 文件，"
-        f"{result.removed_index_entry_count} 条索引记录。"
+    action = cli_text("delete_action_moved") if moved_to_trash else cli_text("delete_action_permanent")
+    return cli_text(
+        "delete_summary",
+        action=action,
+        session_count=result.session_count,
+        deleted_file_count=result.deleted_file_count,
+        removed_index_entry_count=result.removed_index_entry_count,
     )
 
 
 def format_restore_summary(result: RestoreResult) -> str:
     suffix = ""
     if result.skipped_session_ids:
-        suffix = f"；跳过冲突 {len(result.skipped_session_ids)} 个：{', '.join(result.skipped_session_ids)}"
-    return (
-        f"已恢复 {result.restored_session_count} 个 session，"
-        f"{result.restored_file_count} 个 rollout 文件，"
-        f"{result.restored_index_entry_count} 条索引记录"
-        f"{suffix}。"
+        suffix = cli_text(
+            "restore_summary_skipped",
+            count=len(result.skipped_session_ids),
+            ids=", ".join(result.skipped_session_ids),
+        )
+    return cli_text(
+        "restore_summary",
+        restored_session_count=result.restored_session_count,
+        restored_file_count=result.restored_file_count,
+        restored_index_entry_count=result.restored_index_entry_count,
+        suffix=suffix,
     )
 
 
 def format_purge_summary(result: PurgeResult) -> str:
-    return f"已从回收站永久删除 {result.session_count} 个 session，{result.deleted_file_count} 个 rollout 文件。"
+    return cli_text("purge_summary", session_count=result.session_count, deleted_file_count=result.deleted_file_count)
 
 
 def rewrite_index(index_path: Path, deleted_ids: set[str]) -> int:
@@ -991,12 +1214,12 @@ def rename_session(codex_home: Path, session_id: str, new_name: str, *, in_trash
 
 
 def confirm_sessions(action: str, sessions: list[SessionSummary]) -> bool:
-    print(f"将要{action}以下 sessions:")
+    print(cli_text("confirm_will", action=action))
     for session in sessions[:10]:
         print(f"- {session.session_id} | {session.thread_name or '-'}")
     if len(sessions) > 10:
-        print(f"... 其余 {len(sessions) - 10} 个 session")
-    answer = input("继续吗？输入 yes 确认: ").strip()
+        print(cli_text("confirm_more_sessions", count=len(sessions) - 10))
+    answer = input(cli_text("confirm_prompt")).strip()
     return answer == "yes"
 
 
@@ -1007,7 +1230,7 @@ def command_query(args: argparse.Namespace) -> int:
         print_sessions_json(sessions, args.show_files)
     else:
         print_sessions_table(sessions, args.show_files)
-        print(f"\n共 {len(sessions)} 个活动 session，CODEX_HOME={codex_home}")
+        print("\n" + cli_text("summary_active", count=len(sessions), codex_home=codex_home))
     return 0
 
 
@@ -1018,7 +1241,7 @@ def command_trash(args: argparse.Namespace) -> int:
         print_sessions_json(sessions, args.show_files)
     else:
         print_sessions_table(sessions, args.show_files, include_deleted_at=True)
-        print(f"\n共 {len(sessions)} 个回收站 session，CODEX_HOME={codex_home}")
+        print("\n" + cli_text("summary_trash", count=len(sessions), codex_home=codex_home))
     return 0
 
 
@@ -1036,19 +1259,19 @@ def command_projects(args: argparse.Namespace) -> int:
 
 def execute_delete(codex_home: Path, sessions: list[SessionSummary], *, dry_run: bool, yes: bool, permanent: bool) -> int:
     if not sessions:
-        print("没有匹配的 sessions，未执行删除。")
+        print(cli_text("no_delete_targets"))
         return 0
 
     if dry_run:
         rollout_paths = {path for session in sessions for path in session.rollout_paths}
-        action = "永久删除" if permanent else "移入回收站"
-        print(f"dry-run: 将{action} {len(sessions)} 个 session，{len(rollout_paths)} 个 rollout 文件。")
+        action = cli_text("delete_action_permanent_verb") if permanent else cli_text("delete_action_move_verb")
+        print(cli_text("dry_run_delete", action=action, session_count=len(sessions), file_count=len(rollout_paths)))
         print_sessions_table(sessions, show_files=True)
         return 0
 
-    action = "永久删除" if permanent else "移入回收站"
+    action = cli_text("delete_action_permanent_verb") if permanent else cli_text("delete_action_move_verb")
     if not yes and not confirm_sessions(action, sessions):
-        print("已取消操作。")
+        print(cli_text("cancelled"))
         return 1
 
     result = delete_sessions(codex_home, sessions, permanent=permanent)
@@ -1073,10 +1296,10 @@ def command_restore(args: argparse.Namespace) -> int:
     sessions = build_trash_summaries(codex_home)
     targets = sessions if args.all else filter_sessions(sessions, args)
     if not targets:
-        print("没有匹配的回收站 session，未执行恢复。")
+        print(cli_text("no_restore_targets"))
         return 0
-    if not args.yes and not confirm_sessions("恢复", targets):
-        print("已取消操作。")
+    if not args.yes and not confirm_sessions(cli_text("restore_action"), targets):
+        print(cli_text("cancelled"))
         return 1
     result = restore_sessions_from_trash(codex_home, targets)
     print(format_restore_summary(result))
@@ -1088,10 +1311,10 @@ def command_empty_trash(args: argparse.Namespace) -> int:
     sessions = build_trash_summaries(codex_home)
     targets = sessions if args.all else filter_sessions(sessions, args)
     if not targets:
-        print("没有匹配的回收站 session，未执行清空。")
+        print(cli_text("no_empty_trash_targets"))
         return 0
-    if not args.yes and not confirm_sessions("从回收站永久删除", targets):
-        print("已取消操作。")
+    if not args.yes and not confirm_sessions(cli_text("purge_from_trash_action"), targets):
+        print(cli_text("cancelled"))
         return 1
     result = purge_trashed_sessions(codex_home, targets)
     print(format_purge_summary(result))
@@ -1102,10 +1325,10 @@ def command_rename(args: argparse.Namespace) -> int:
     codex_home = resolve_codex_home(args.codex_home)
     changed = rename_session(codex_home, args.id, args.name, in_trash=args.trash)
     if not changed:
-        scope = "回收站" if args.trash else "活动列表"
-        print(f"未在{scope}找到 session: {args.id}")
+        scope = cli_text("rename_scope_trash") if args.trash else cli_text("rename_scope_active")
+        print(cli_text("rename_missing", scope=scope, session_id=args.id))
         return 1
-    print(f"已将 session {args.id} 重命名为: {args.name}")
+    print(cli_text("rename_success", session_id=args.id, name=args.name))
     return 0
 
 
@@ -1123,10 +1346,7 @@ def load_qt_binding() -> tuple[str, Any, Any]:
             return name, QtCore, QtWidgets
         except ImportError as exc:
             errors.append(f"{name}: {exc}")
-    raise RuntimeError(
-        "未检测到 Qt 绑定，请先安装 PySide6、PyQt6 或 PyQt5。"
-        f" 当前探测结果: {'; '.join(errors)}"
-    )
+    raise RuntimeError(cli_text("qt_missing", errors="; ".join(errors)))
 
 
 def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
@@ -1638,81 +1858,104 @@ def command_gui(args: argparse.Namespace) -> int:
         return 2
 
 
-def add_common_filters(parser: argparse.ArgumentParser, *, default_limit: int) -> None:
-    parser.add_argument("--codex-home", help="Codex 数据目录，默认读取 CODEX_HOME 或 ~/.codex。")
-    parser.add_argument("--id", action="append", help="按 session id 精确匹配，可重复传入。")
-    parser.add_argument("--keyword", help="按 session id、thread name、cwd、project 模糊匹配。")
-    parser.add_argument("--project", help="按项目路径模糊匹配。")
-    parser.add_argument("--cwd", help="按 cwd 模糊匹配。")
-    parser.add_argument("--before", help="仅匹配 updated_at 早于该时间的 session，例如 2026-10-01T00:00:00Z。")
-    parser.add_argument("--after", help="仅匹配 updated_at 晚于该时间的 session，例如 2026-10-01T00:00:00Z。")
-    parser.add_argument("--missing-files", action="store_true", help="仅匹配没有 rollout 文件的 session。")
-    parser.add_argument("--with-files", action="store_true", help="仅匹配存在 rollout 文件的 session。")
-    parser.add_argument("--limit", type=int, default=default_limit, help=f"返回的最大 session 数，默认 {default_limit}；传 -1 表示不限制。")
+def detect_requested_language(argv: list[str] | None = None) -> str | None:
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    for index, argument in enumerate(arguments):
+        if argument == "--lang" and index + 1 < len(arguments):
+            return arguments[index + 1]
+        if argument.startswith("--lang="):
+            return argument.split("=", 1)[1]
+    return None
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Manage local Codex sessions, recycle bin, rename, and Qt UI.")
+def add_language_argument(parser: argparse.ArgumentParser, *, help_text: str, dest: str = "lang_override") -> None:
+    parser.add_argument("--lang", dest=dest, metavar="LANG", help=help_text)
+
+
+def add_common_filters(parser: argparse.ArgumentParser, *, default_limit: int, localize: Any) -> None:
+    add_language_argument(parser, help_text=localize("lang_help"))
+    parser.add_argument("--codex-home", help=localize("codex_home_help"))
+    parser.add_argument("--id", action="append", help=localize("id_help"))
+    parser.add_argument("--keyword", help=localize("keyword_help"))
+    parser.add_argument("--project", help=localize("project_help"))
+    parser.add_argument("--cwd", help=localize("cwd_help"))
+    parser.add_argument("--before", help=localize("before_help"))
+    parser.add_argument("--after", help=localize("after_help"))
+    parser.add_argument("--missing-files", action="store_true", help=localize("missing_files_help"))
+    parser.add_argument("--with-files", action="store_true", help=localize("with_files_help"))
+    parser.add_argument("--limit", type=int, default=default_limit, help=localize("limit_help", default_limit=default_limit))
+
+
+def build_parser(language: str | None = None) -> argparse.ArgumentParser:
+    build_language = normalize_language(language or detect_requested_language(), environment_keys=("CODEX_LANG",))
+
+    def localize(key: str, **kwargs: object) -> str:
+        return format_localized_text(CLI_TRANSLATIONS, build_language, key, **kwargs)
+
+    parser = argparse.ArgumentParser(description=localize("parser_description"))
+    add_language_argument(parser, help_text=localize("lang_help"), dest="lang")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    query_parser = subparsers.add_parser("query", aliases=["list"], help="查询活动 sessions。")
-    add_common_filters(query_parser, default_limit=20)
-    query_parser.add_argument("--json", action="store_true", help="输出 JSON。")
-    query_parser.add_argument("--show-files", action="store_true", help="输出每个 session 对应的 rollout 文件路径。")
+    query_parser = subparsers.add_parser("query", aliases=["list"], help=localize("query_help"))
+    add_common_filters(query_parser, default_limit=20, localize=localize)
+    query_parser.add_argument("--json", action="store_true", help=localize("json_help"))
+    query_parser.add_argument("--show-files", action="store_true", help=localize("show_files_help"))
     query_parser.set_defaults(func=command_query)
 
-    trash_parser = subparsers.add_parser("trash", aliases=["list-trash"], help="查询回收站 sessions。")
-    add_common_filters(trash_parser, default_limit=20)
-    trash_parser.add_argument("--json", action="store_true", help="输出 JSON。")
-    trash_parser.add_argument("--show-files", action="store_true", help="输出每个 session 对应的回收站文件路径。")
+    trash_parser = subparsers.add_parser("trash", aliases=["list-trash"], help=localize("trash_help"))
+    add_common_filters(trash_parser, default_limit=20, localize=localize)
+    trash_parser.add_argument("--json", action="store_true", help=localize("json_help"))
+    trash_parser.add_argument("--show-files", action="store_true", help=localize("trash_show_files_help"))
     trash_parser.set_defaults(func=command_trash)
 
-    projects_parser = subparsers.add_parser("projects", help="按项目统计 sessions。")
-    add_common_filters(projects_parser, default_limit=-1)
-    projects_parser.add_argument("--trash", action="store_true", help="统计回收站中的 sessions。")
-    projects_parser.add_argument("--json", action="store_true", help="输出 JSON。")
+    projects_parser = subparsers.add_parser("projects", help=localize("projects_help"))
+    add_common_filters(projects_parser, default_limit=-1, localize=localize)
+    projects_parser.add_argument("--trash", action="store_true", help=localize("projects_trash_help"))
+    projects_parser.add_argument("--json", action="store_true", help=localize("json_help"))
     projects_parser.set_defaults(func=command_projects)
 
-    rename_parser = subparsers.add_parser("rename", help="重命名 session。")
-    rename_parser.add_argument("--codex-home", help="Codex 数据目录，默认读取 CODEX_HOME 或 ~/.codex。")
-    rename_parser.add_argument("--id", required=True, help="目标 session id。")
-    rename_parser.add_argument("--name", required=True, help="新的 session 名称。")
-    rename_parser.add_argument("--trash", action="store_true", help="重命名回收站中的 session。")
+    rename_parser = subparsers.add_parser("rename", help=localize("rename_help"))
+    add_language_argument(rename_parser, help_text=localize("lang_help"))
+    rename_parser.add_argument("--codex-home", help=localize("codex_home_help"))
+    rename_parser.add_argument("--id", required=True, help=localize("rename_id_help"))
+    rename_parser.add_argument("--name", required=True, help=localize("rename_name_help"))
+    rename_parser.add_argument("--trash", action="store_true", help=localize("rename_trash_help"))
     rename_parser.set_defaults(func=command_rename)
 
-    delete_parser = subparsers.add_parser("delete", help="删除活动 session，默认移入回收站。")
-    add_common_filters(delete_parser, default_limit=-1)
-    delete_parser.add_argument("--dry-run", action="store_true", help="仅预览将删除的 session 和文件。")
-    delete_parser.add_argument("--yes", action="store_true", help="跳过交互确认。")
-    delete_parser.add_argument("--permanent", action="store_true", help="直接永久删除，不经过回收站。")
+    delete_parser = subparsers.add_parser("delete", help=localize("delete_help"))
+    add_common_filters(delete_parser, default_limit=-1, localize=localize)
+    delete_parser.add_argument("--dry-run", action="store_true", help=localize("dry_run_help"))
+    delete_parser.add_argument("--yes", action="store_true", help=localize("yes_help"))
+    delete_parser.add_argument("--permanent", action="store_true", help=localize("permanent_help"))
     delete_parser.set_defaults(func=command_delete)
 
     delete_all_parser = subparsers.add_parser(
         "delete-all",
         aliases=["delete_all", "delte_all"],
-        help="删除全部活动 session，默认移入回收站。",
+        help=localize("delete_all_help"),
     )
-    delete_all_parser.add_argument("--codex-home", help="Codex 数据目录，默认读取 CODEX_HOME 或 ~/.codex。")
-    delete_all_parser.add_argument("--dry-run", action="store_true", help="仅预览将删除的 session 和文件。")
-    delete_all_parser.add_argument("--yes", action="store_true", help="跳过交互确认。")
-    delete_all_parser.add_argument("--permanent", action="store_true", help="直接永久删除，不经过回收站。")
+    add_language_argument(delete_all_parser, help_text=localize("lang_help"))
+    delete_all_parser.add_argument("--codex-home", help=localize("codex_home_help"))
+    delete_all_parser.add_argument("--dry-run", action="store_true", help=localize("dry_run_help"))
+    delete_all_parser.add_argument("--yes", action="store_true", help=localize("yes_help"))
+    delete_all_parser.add_argument("--permanent", action="store_true", help=localize("permanent_help"))
     delete_all_parser.set_defaults(func=command_delete_all)
 
-    restore_parser = subparsers.add_parser("restore", help="从回收站恢复 session。")
-    add_common_filters(restore_parser, default_limit=-1)
-    restore_parser.add_argument("--all", action="store_true", help="恢复回收站全部 session。")
-    restore_parser.add_argument("--yes", action="store_true", help="跳过交互确认。")
+    restore_parser = subparsers.add_parser("restore", help=localize("restore_help"))
+    add_common_filters(restore_parser, default_limit=-1, localize=localize)
+    restore_parser.add_argument("--all", action="store_true", help=localize("restore_all_help"))
+    restore_parser.add_argument("--yes", action="store_true", help=localize("yes_help"))
     restore_parser.set_defaults(func=command_restore)
 
-    empty_trash_parser = subparsers.add_parser("empty-trash", help="从回收站永久删除 session。")
-    add_common_filters(empty_trash_parser, default_limit=-1)
-    empty_trash_parser.add_argument("--all", action="store_true", help="清空回收站全部 session。")
-    empty_trash_parser.add_argument("--yes", action="store_true", help="跳过交互确认。")
+    empty_trash_parser = subparsers.add_parser("empty-trash", help=localize("empty_trash_help"))
+    add_common_filters(empty_trash_parser, default_limit=-1, localize=localize)
+    empty_trash_parser.add_argument("--all", action="store_true", help=localize("empty_trash_all_help"))
+    empty_trash_parser.add_argument("--yes", action="store_true", help=localize("yes_help"))
     empty_trash_parser.set_defaults(func=command_empty_trash)
 
-    gui_parser = subparsers.add_parser("gui", aliases=["qt"], help="启动 Qt 图形界面管理 sessions。")
-    gui_parser.add_argument("--codex-home", help="Codex 数据目录，默认读取 CODEX_HOME 或 ~/.codex。")
-    gui_parser.add_argument("--lang", help="GUI 语言：system、en、zh-CN。默认跟随系统语言或 CODEX_UI_LANG。")
+    gui_parser = subparsers.add_parser("gui", aliases=["qt"], help=localize("gui_help"))
+    gui_parser.add_argument("--codex-home", help=localize("codex_home_help"))
+    gui_parser.add_argument("--lang", dest="lang_override", help=localize("gui_lang_help"))
     gui_parser.set_defaults(func=command_gui)
 
     return parser
@@ -1722,6 +1965,7 @@ def main() -> int:
     configure_stdout()
     parser = build_parser()
     args = parser.parse_args()
+    args.lang = set_cli_language(getattr(args, "lang_override", None) or getattr(args, "lang", None))
     return args.func(args)
 
 
