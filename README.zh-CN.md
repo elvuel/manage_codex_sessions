@@ -181,6 +181,8 @@ git push origin v1.0.0
 
 其中 Windows 产物会打包为 `.zip`，Linux 和 macOS 产物会打包为 `.tar.gz`，并为每个产物额外生成对应的 `.sha256` 校验文件。
 
+如果需要重建某个已有版本，也可以在 GitHub Actions 页面通过 `workflow_dispatch` 手动触发，并填写已有的 `v*` tag；同名附件会自动覆盖。
+
 ## Windows PowerShell 快捷用法
 
 构建单文件产物：

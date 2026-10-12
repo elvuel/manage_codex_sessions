@@ -182,6 +182,8 @@ git push origin v1.0.0
 
 The workflow packages Windows builds as `.zip`, Linux/macOS builds as `.tar.gz`, and publishes a matching `.sha256` file for each asset.
 
+You can also rerun a release manually from the Actions tab with `workflow_dispatch` by providing an existing `v*` tag. Existing assets with the same name are replaced.
+
 ## Windows PowerShell Shortcut
 
 Single-file build:
