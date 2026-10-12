@@ -1,183 +1,186 @@
 # manage_codex_sessions
 
-独立的 Codex sessions 管理工具，支持：
+[![Python](https://img.shields.io/badge/python-3.14%2B-blue.svg)](./README.md)
+[![Platforms](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-2ea44f.svg)](./README.md)
+[![GUI](https://img.shields.io/badge/GUI-PySide6-41CD52.svg)](./README.md)
+[![Build](https://img.shields.io/badge/build-PyInstaller-f97316.svg)](./README.md)
 
-- 查询活动 sessions
-- GUI / Qt 管理 sessions
-- session 改名
-- 默认删除到回收站
-- 从回收站恢复 / 清空回收站
-- 按项目筛选和查看
-- 打包为无需预装 Qt 的 GUI 可执行文件 / 应用包
+English | [简体中文](./README.zh-CN.md)
 
-## 文件说明
+`manage_codex_sessions` is a standalone utility for browsing and managing local Codex sessions.
+It ships with both a CLI and a Qt GUI for listing active sessions, exploring trash, renaming threads,
+deleting safely to trash, restoring deleted sessions, and packaging the GUI as a distributable app.
 
-- `manage_codex_sessions.py`：主程序，提供 CLI 和 GUI 逻辑
-- `manage_codex_sessions_gui.py`：GUI 启动入口，适合直接打包 exe
-- `build_manage_codex_sessions_gui.py`：跨平台一键打包脚本
-- `build_manage_codex_sessions_gui.ps1`：Windows PowerShell 包装脚本
-- `.gitignore`：Python / PyInstaller 构建忽略规则
+## Highlights
 
-## 环境要求
+- Inspect active sessions and trashed sessions from one tool.
+- Rename sessions from the CLI or by double-clicking the `Thread` column in the GUI.
+- Delete to trash by default, then restore or permanently purge later.
+- Filter sessions by project, working directory, title, source, and more.
+- Summarize sessions per project for quick cleanup.
+- Build a GUI binary for Windows, macOS, or Linux with the included PyInstaller script.
 
-- Windows / macOS / Linux
-- Python 3.14+
+## Project Layout
 
-GUI 依赖：
+- `manage_codex_sessions.py` — main CLI entry point plus shared GUI logic.
+- `manage_codex_sessions_gui.py` — minimal GUI launcher, ideal for packaging.
+- `build_manage_codex_sessions_gui.py` — cross-platform build script for PyInstaller.
+- `build_manage_codex_sessions_gui.ps1` — PowerShell wrapper for Windows users.
+- `requirements-build.txt` — build-time dependencies.
 
-- `PySide6`
+## Requirements
 
-打包依赖：
+- Python `3.14+`
+- Windows, macOS, or Linux
 
-- `PyInstaller`
+Optional dependencies:
 
-## 安装依赖
+- `PySide6` for the GUI
+- `PyInstaller` for packaging
 
-只运行脚本：
+## Install
 
-```powershell
+Install only the GUI runtime:
+
+```bash
 python -m pip install PySide6
 ```
 
-如果要打包 exe：
+Install packaging dependencies too:
 
-```powershell
-python -m pip install PySide6 pyinstaller
+```bash
+python -m pip install -r requirements-build.txt
 ```
 
-## CLI 用法
+## CLI Quick Start
 
-### 查询活动 sessions
+List active sessions:
 
-```powershell
+```bash
 python manage_codex_sessions.py query
 ```
 
-### 查询回收站
+List trashed sessions:
 
-```powershell
+```bash
 python manage_codex_sessions.py trash
 ```
 
-### 按项目统计
+Summarize sessions by project:
 
-```powershell
+```bash
 python manage_codex_sessions.py projects
 ```
 
-### 改名
+Rename a session:
 
-```powershell
-python manage_codex_sessions.py rename --id <session-id> --name "新名字"
+```bash
+python manage_codex_sessions.py rename --id <session-id> --name "New session name"
 ```
 
-### 删除到回收站
+Move a session to trash:
 
-```powershell
+```bash
 python manage_codex_sessions.py delete --id <session-id> --yes
 ```
 
-### 永久删除
+Delete all active sessions permanently:
 
-```powershell
-python manage_codex_sessions.py delete --id <session-id> --yes --permanent
+```bash
+python manage_codex_sessions.py delete-all --yes --permanent
 ```
 
-### 恢复
+Restore a session from trash:
 
-```powershell
+```bash
 python manage_codex_sessions.py restore --id <session-id> --yes
 ```
 
-### 清空回收站
+Empty the entire trash:
 
-```powershell
+```bash
 python manage_codex_sessions.py empty-trash --all --yes
 ```
 
-## GUI 用法
+Launch the GUI:
 
-启动 GUI：
-
-```powershell
+```bash
 python manage_codex_sessions.py gui
 ```
 
-或者：
+Or run the dedicated GUI entry point:
 
-```powershell
+```bash
 python manage_codex_sessions_gui.py
 ```
 
-GUI 支持：
+## GUI Features
 
-- 活动 sessions / 回收站 双页签
-- 单选 / 多选 / 全选
-- 双击 `Thread` 弹出重命名对话框
-- 删除到回收站
-- 从回收站恢复
-- 清空回收站
-- 按项目筛选
-- 单实例运行
+- Separate tabs for active sessions and trash.
+- Single-select, multi-select, and select-all workflows.
+- Project filter and free-text search.
+- In-place rename flow by double-clicking the `Thread` column.
+- Restore, purge, and bulk delete actions.
+- Single-instance lock to prevent duplicate GUI windows.
 
-## 跨平台打包
+## Cross-Platform Build
 
-默认打成单文件 GUI 产物：
+Build a single-file GUI artifact:
 
 ```bash
 python build_manage_codex_sessions_gui.py
 ```
 
-跳过依赖安装：
+Skip dependency installation:
 
 ```bash
 python build_manage_codex_sessions_gui.py --skip-dependency-install
 ```
 
-打成目录模式：
+Build a directory bundle instead:
 
 ```bash
 python build_manage_codex_sessions_gui.py --onedir --skip-dependency-install
 ```
 
-如果需要向 PyInstaller 透传额外参数：
+Pass extra flags through to PyInstaller:
 
 ```bash
 python build_manage_codex_sessions_gui.py -- --icon app.ico
 ```
 
-## Windows PowerShell 用法
+## Windows PowerShell Shortcut
 
-默认打成单文件 GUI exe：
+Single-file build:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build_manage_codex_sessions_gui.ps1
 ```
 
-跳过依赖安装：
+Skip dependency installation:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build_manage_codex_sessions_gui.ps1 -SkipDependencyInstall
 ```
 
-打成目录模式：
+Directory build:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build_manage_codex_sessions_gui.ps1 -OneDir -SkipDependencyInstall
 ```
 
-输出产物：
+Typical outputs:
 
-- Windows：`dist\manage_codex_sessions_gui.exe` 或 `dist\manage_codex_sessions_gui\`
-- Linux：`dist/manage_codex_sessions_gui` 或 `dist/manage_codex_sessions_gui/`
-- macOS：通常位于 `dist/manage_codex_sessions_gui` 或 `dist/manage_codex_sessions_gui.app`
+- Windows: `dist\manage_codex_sessions_gui.exe` or `dist\manage_codex_sessions_gui\`
+- Linux: `dist/manage_codex_sessions_gui` or `dist/manage_codex_sessions_gui/`
+- macOS: `dist/manage_codex_sessions_gui` or `dist/manage_codex_sessions_gui.app`
 
-## 数据位置
+## Data Locations
 
-默认读取当前用户的：
+By default, the tool reads from the current user's Codex data directory:
 
 - `~/.codex/session_index.jsonl`
 - `~/.codex/sessions/`
 - `~/.codex/session_trash/`
 
-也可以通过 `--codex-home` 指定其他 Codex 数据目录。
+Use `--codex-home` to point at a different Codex data directory.
