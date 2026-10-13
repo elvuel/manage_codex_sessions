@@ -188,6 +188,17 @@ def test_gui_language_override_env_is_still_respected(monkeypatch) -> None:
     assert app.normalize_gui_language(None, system_locale_name="zh_CN") == "en"
 
 
+def test_normalize_pyinstaller_args_preserves_unicode_empty_and_later_delimiters() -> None:
+    # The first delimiter belongs to this wrapper; subsequent values are PyInstaller input.
+    assert build_app.normalize_pyinstaller_args(["--", "--name", "Résumé 🧪", "--", ""]) == [
+        "--name",
+        "Résumé 🧪",
+        "--",
+        "",
+    ]
+    assert build_app.normalize_pyinstaller_args([]) == []
+
+
 def test_build_pyinstaller_command_includes_icon_and_bundled_asset() -> None:
     command = build_app.build_pyinstaller_command(False, sys.executable, [])
 
