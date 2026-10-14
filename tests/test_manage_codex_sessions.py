@@ -215,3 +215,16 @@ def test_build_pyinstaller_command_includes_icon_and_bundled_asset() -> None:
 
 def test_application_icon_asset_exists() -> None:
     assert app.resolve_runtime_asset_path(app.APP_ICON_RELATIVE_PATH).exists()
+
+
+def test_normalize_string_list_preserves_unicode_and_json_falsy_values() -> None:
+    """Metadata normalization must not discard values merely because they are falsy."""
+    assert app.normalize_string_list([
+        None,
+        "",
+        "工作目录",
+        0,
+        False,
+        [],
+        {"路径": "项目"},
+    ]) == ["工作目录", "0", "false", "[]", '{"路径": "项目"}']
