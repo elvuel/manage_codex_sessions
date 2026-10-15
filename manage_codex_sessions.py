@@ -123,6 +123,7 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "trash_title": "Trash",
         "select_all": "Select All",
         "clear_selection": "Clear Selection",
+        "export_markdown": "Export Markdown",
         "rename": "Rename",
         "delete_to_trash": "Move to Trash",
         "restore_selected": "Restore Selected",
@@ -134,6 +135,13 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "copy_session_id_action": "Copy Session ID",
         "copy_session_id_body": "Session ID copied.",
         "copy_session_ids_body": "Copied {count} session IDs.",
+        "export_markdown_title": "Export Session Markdown",
+        "export_markdown_filter": "Markdown Files (*.md);;All Files (*)",
+        "export_single_select_title": "Select One Session",
+        "export_single_select_body": "Markdown export supports exactly one selected session.",
+        "export_complete_title": "Export Complete",
+        "export_complete_body": "Exported Markdown to:\n{output_path}",
+        "export_failed_title": "Export Failed",
         "status_summary": "CODEX_HOME: {codex_home} | Active {active_count} | Trash {trash_count} | Current: {title} Visible {visible_count} | Selected {selected_count}",
         "rename_session_title": "Rename Session",
         "rename_session_label": "New name:",
@@ -198,6 +206,7 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "trash_title": "回收站",
         "select_all": "全选",
         "clear_selection": "清空选择",
+        "export_markdown": "导出 Markdown",
         "rename": "重命名",
         "delete_to_trash": "删除到回收站",
         "restore_selected": "恢复所选",
@@ -209,6 +218,13 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "copy_session_id_action": "复制 Session ID",
         "copy_session_id_body": "session_id已复制",
         "copy_session_ids_body": "已复制 {count} 个 session_id",
+        "export_markdown_title": "导出 Session Markdown",
+        "export_markdown_filter": "Markdown 文件 (*.md);;所有文件 (*)",
+        "export_single_select_title": "请选择一条",
+        "export_single_select_body": "导出 Markdown 仅支持单选 session。",
+        "export_complete_title": "导出完成",
+        "export_complete_body": "Markdown 已导出到：\n{output_path}",
+        "export_failed_title": "导出失败",
         "status_summary": "CODEX_HOME: {codex_home} | 活动 {active_count} | 回收站 {trash_count} | 当前: {title} 显示 {visible_count} | 已选 {selected_count}",
         "rename_session_title": "重命名 session",
         "rename_session_label": "新的名称：",
@@ -268,6 +284,7 @@ CLI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "query_help": "List active sessions.",
         "trash_help": "List trashed sessions.",
         "projects_help": "Summarize sessions by project.",
+        "export_help": "Export one session to Markdown.",
         "rename_help": "Rename a session.",
         "delete_help": "Delete active sessions. Moves them to trash by default.",
         "delete_all_help": "Delete all active sessions. Moves them to trash by default.",
@@ -280,6 +297,9 @@ CLI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "trash_show_files_help": "Include trashed file paths for each session.",
         "projects_trash_help": "Summarize trashed sessions instead of active sessions.",
         "rename_id_help": "Target session id.",
+        "export_id_help": "Target session id to export.",
+        "export_output_help": "Output Markdown file path. Defaults to ./<session>.md.",
+        "export_trash_help": "Export a session from trash.",
         "rename_name_help": "New session name.",
         "rename_trash_help": "Rename a session in trash.",
         "dry_run_help": "Preview sessions and files that would be deleted.",
@@ -321,6 +341,10 @@ CLI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "rename_scope_active": "active sessions",
         "rename_missing": "Session not found in {scope}: {session_id}",
         "rename_success": "Renamed session {session_id} to: {name}",
+        "export_scope_trash": "trash",
+        "export_scope_active": "active sessions",
+        "export_missing": "Session not found in {scope}: {session_id}",
+        "export_success": "Exported session {session_id} to Markdown: {output_path}",
         "qt_missing": "No Qt binding detected. Install PySide6, PyQt6, or PyQt5 first. Detection results: {errors}",
     },
     "zh-CN": {
@@ -340,6 +364,7 @@ CLI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "query_help": "查询活动 sessions。",
         "trash_help": "查询回收站 sessions。",
         "projects_help": "按项目统计 sessions。",
+        "export_help": "将单个 session 导出为 Markdown。",
         "rename_help": "重命名 session。",
         "delete_help": "删除活动 session，默认移入回收站。",
         "delete_all_help": "删除全部活动 session，默认移入回收站。",
@@ -352,6 +377,9 @@ CLI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "trash_show_files_help": "输出每个 session 对应的回收站文件路径。",
         "projects_trash_help": "统计回收站中的 sessions。",
         "rename_id_help": "目标 session id。",
+        "export_id_help": "要导出的目标 session id。",
+        "export_output_help": "输出 Markdown 文件路径；默认写入当前目录下的 ./<session>.md。",
+        "export_trash_help": "导出回收站中的 session。",
         "rename_name_help": "新的 session 名称。",
         "rename_trash_help": "重命名回收站中的 session。",
         "dry_run_help": "仅预览将删除的 session 和文件。",
@@ -393,6 +421,10 @@ CLI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "rename_scope_active": "活动列表",
         "rename_missing": "未在{scope}找到 session: {session_id}",
         "rename_success": "已将 session {session_id} 重命名为: {name}",
+        "export_scope_trash": "回收站",
+        "export_scope_active": "活动列表",
+        "export_missing": "未在{scope}找到 session: {session_id}",
+        "export_success": "已将 session {session_id} 导出为 Markdown: {output_path}",
         "qt_missing": "未检测到 Qt 绑定，请先安装 PySide6、PyQt6 或 PyQt5。当前探测结果: {errors}",
     },
 }
@@ -735,6 +767,152 @@ def scan_rollouts(sessions_dir: Path) -> dict[str, list[SessionRollout]]:
         )
 
     return grouped
+
+
+def sanitize_filename_component(value: str) -> str:
+    collapsed = "_".join(value.split())
+    safe = "".join(character if character.isalnum() or character in "-_.()" else "_" for character in collapsed)
+    trimmed = safe.strip("._")[:80]
+    return trimmed or "session"
+
+
+def default_session_markdown_filename(session: SessionSummary) -> str:
+    label = sanitize_filename_component(session.thread_name or session.session_id)
+    session_token = sanitize_filename_component(session.session_id)
+    if label != session_token:
+        label = f"{label}-{session_token}"
+    return f"{label}.md"
+
+
+def resolve_session_markdown_output_path(session: SessionSummary, output_path: str | Path | None = None) -> Path:
+    if output_path is None:
+        return Path.cwd() / default_session_markdown_filename(session)
+    resolved = Path(output_path).expanduser()
+    raw_output = str(output_path)
+    if resolved.exists() and resolved.is_dir():
+        return resolved / default_session_markdown_filename(session)
+    if raw_output.endswith(("/", "\\")):
+        return resolved / default_session_markdown_filename(session)
+    return resolved
+
+
+def render_transcript_content_items(items: Iterable[object]) -> str:
+    parts: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        item_type = str(item.get("type") or "")
+        text = item.get("text")
+        if isinstance(text, str) and item_type in {"input_text", "output_text", "text", "Text"}:
+            stripped = text.strip()
+            if stripped:
+                parts.append(stripped)
+            continue
+        location = item.get("path") or item.get("image_url") or item.get("audio_url")
+        if isinstance(location, str) and location:
+            parts.append(f"[{item_type or 'attachment'}: {location}]")
+            continue
+        rendered = stringify_metadata(item)
+        if rendered:
+            parts.append(f"[{item_type}] {rendered}" if item_type else rendered)
+    return "\n\n".join(parts).strip()
+
+
+def collect_session_transcript_messages(session: SessionSummary) -> list[dict[str, Any]]:
+    messages: list[dict[str, Any]] = []
+    seen_message_ids: set[str] = set()
+    for rollout_path in sorted(session.rollout_paths):
+        try:
+            records = read_jsonl_records(rollout_path)
+        except (OSError, json.JSONDecodeError):
+            continue
+        for sequence, record in enumerate(records):
+            if not isinstance(record, dict) or record.get("type") != "response_item":
+                continue
+            payload = record.get("payload")
+            if not isinstance(payload, dict) or payload.get("type") != "message":
+                continue
+            role = stringify_metadata(payload.get("role")) or ""
+            if role not in {"user", "assistant"}:
+                continue
+            message_id = stringify_metadata(payload.get("id")) or f"{rollout_path}:{sequence}"
+            if message_id in seen_message_ids:
+                continue
+            content = payload.get("content")
+            rendered = render_transcript_content_items(content if isinstance(content, list) else [content])
+            if not rendered:
+                continue
+            seen_message_ids.add(message_id)
+            messages.append(
+                {
+                    "message_id": message_id,
+                    "role": role,
+                    "timestamp_text": str(record.get("timestamp") or ""),
+                    "timestamp": parse_iso8601(record.get("timestamp")),
+                    "ordinal": int(record.get("ordinal") or sequence),
+                    "text": rendered,
+                }
+            )
+    messages.sort(key=lambda item: (item["timestamp_text"], item["ordinal"], item["message_id"]))
+    return messages
+
+
+def build_session_markdown(session: SessionSummary) -> str:
+    title = session.thread_name or session.session_id
+    transcript_messages = collect_session_transcript_messages(session)
+    lines = [f"# {title}", ""]
+    lines.extend(
+        [
+            f"- Session ID: `{session.session_id}`",
+            f"- Thread: {session.thread_name or '-'}",
+            f"- Updated: {format_timestamp(session.updated_at)}",
+            f"- First Rollout: {format_timestamp(session.first_rollout_at)}",
+            f"- Last Rollout: {format_timestamp(session.last_rollout_at)}",
+            f"- Project: `{session.primary_project}`",
+            f"- CWD: `{session.primary_cwd}`",
+            f"- Source: `{session.primary_source}`",
+            f"- Rollout Files: {session.file_count}",
+            f"- Total Size: {format_bytes(session.total_size)}",
+        ]
+    )
+    if session.deleted_at is not None:
+        lines.append(f"- Deleted: {format_timestamp(session.deleted_at)}")
+    if session.cli_versions:
+        lines.append(f"- CLI Versions: {', '.join(f'`{value}`' for value in sorted(session.cli_versions))}")
+    if session.workspace_roots_values:
+        lines.append(f"- Workspace Roots: {', '.join(f'`{value}`' for value in sorted(session.workspace_roots_values))}")
+
+    lines.extend(["", "## Transcript", ""])
+    if not transcript_messages:
+        lines.append("_No exportable user/assistant messages were found in the rollout files._")
+    else:
+        for message in transcript_messages:
+            heading = message["role"].title()
+            timestamp = message.get("timestamp")
+            if isinstance(timestamp, datetime):
+                heading = f"{heading} - {format_timestamp(timestamp)}"
+            lines.extend([f"### {heading}", "", str(message["text"]).rstrip(), ""])
+
+    lines.extend(["## Rollout Files", ""])
+    if session.rollout_paths:
+        lines.extend(f"- `{path}`" for path in sorted(session.rollout_paths))
+    else:
+        lines.append("- _No rollout files found._")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def export_session_markdown(session: SessionSummary, output_path: str | Path | None = None) -> Path:
+    destination = resolve_session_markdown_output_path(session, output_path)
+    ensure_parent_dir(destination)
+    destination.write_text(build_session_markdown(session), encoding="utf-8", newline="\n")
+    return destination
+
+
+def find_session_by_id(sessions: Iterable[SessionSummary], session_id: str) -> SessionSummary | None:
+    for session in sessions:
+        if session.session_id == session_id:
+            return session
+    return None
 
 
 def build_session_summaries(codex_home: Path) -> list[SessionSummary]:
@@ -1360,6 +1538,19 @@ def command_rename(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_export(args: argparse.Namespace) -> int:
+    codex_home = resolve_codex_home(args.codex_home)
+    sessions = build_trash_summaries(codex_home) if args.trash else build_session_summaries(codex_home)
+    session = find_session_by_id(sessions, args.id)
+    if session is None:
+        scope = cli_text("export_scope_trash") if args.trash else cli_text("export_scope_active")
+        print(cli_text("export_missing", scope=scope, session_id=args.id))
+        return 1
+    output_path = export_session_markdown(session, args.output)
+    print(cli_text("export_success", session_id=session.session_id, output_path=output_path))
+    return 0
+
+
 def load_qt_binding() -> tuple[str, Any, Any, Any]:
     candidates = ("PySide6", "PyQt6", "PyQt5")
     errors: list[str] = []
@@ -1449,6 +1640,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.session_by_id: dict[str, SessionSummary] = {}
             self.on_state_changed: Any = None
             self.on_thread_double_clicked: Any = None
+            self.on_export_markdown_requested: Any = None
             self.on_session_ids_copied: Any = None
 
             layout = QtWidgets.QVBoxLayout(self)
@@ -1584,16 +1776,25 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
 
         def _show_table_context_menu(self, position: Any) -> None:
             index = self.table.indexAt(position)
+            target_session: SessionSummary | None = None
             if index.isValid():
                 model = self.table.selectionModel()
                 selected_rows = {selected_index.row() for selected_index in model.selectedRows()} if model is not None else set()
                 if index.row() not in selected_rows:
                     self.table.selectRow(index.row())
                 self.table.setCurrentCell(index.row(), self.session_id_column)
+                target_session = self.session_for_row(index.row())
             menu = QtWidgets.QMenu(self.table)
             copy_action = menu.addAction(t("copy_session_id_action"))
             copy_action.triggered.connect(self.copy_selected_or_current_session_ids)
+            if target_session is not None:
+                export_action = menu.addAction(t("export_markdown"))
+                export_action.triggered.connect(lambda checked=False, session=target_session: self.request_export_markdown(session))
             menu.exec(self.table.viewport().mapToGlobal(position))
+
+        def request_export_markdown(self, session: SessionSummary) -> None:
+            if callable(self.on_export_markdown_requested):
+                self.on_export_markdown_requested(session)
 
         def set_sessions(self, sessions: list[SessionSummary]) -> None:
             self.all_sessions = list(sessions)
@@ -1748,6 +1949,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
                     ("select_all", "select_all"),
                     ("clear_selection", "clear_selection"),
                     ("copy_session_id", "copy_session_id_action"),
+                    ("export_markdown", "export_markdown"),
                     ("rename", "rename"),
                     ("delete", "delete_to_trash"),
                 ],
@@ -1759,6 +1961,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
                     ("select_all", "select_all"),
                     ("clear_selection", "clear_selection"),
                     ("copy_session_id", "copy_session_id_action"),
+                    ("export_markdown", "export_markdown"),
                     ("rename", "rename"),
                     ("restore", "restore_selected"),
                     ("purge_selected", "purge_selected"),
@@ -1795,12 +1998,16 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.trash_panel.on_state_changed = self.update_status
             self.active_panel.on_thread_double_clicked = self.rename_active_session
             self.trash_panel.on_thread_double_clicked = self.rename_trash_session
+            self.active_panel.on_export_markdown_requested = self.export_active_session
+            self.trash_panel.on_export_markdown_requested = self.export_trash_session
             self.active_panel.on_session_ids_copied = self.handle_session_ids_copied
             self.trash_panel.on_session_ids_copied = self.handle_session_ids_copied
 
             self.active_panel.buttons["rename"].clicked.connect(self.rename_active_selected)
+            self.active_panel.buttons["export_markdown"].clicked.connect(self.export_active_selected)
             self.active_panel.buttons["delete"].clicked.connect(self.delete_active_selected)
             self.trash_panel.buttons["rename"].clicked.connect(self.rename_trash_selected)
+            self.trash_panel.buttons["export_markdown"].clicked.connect(self.export_trash_selected)
             self.trash_panel.buttons["restore"].clicked.connect(self.restore_trash_selected)
             self.trash_panel.buttons["purge_selected"].clicked.connect(self.purge_trash_selected)
             self.trash_panel.buttons["purge_all"].clicked.connect(self.purge_trash_all)
@@ -1930,6 +2137,45 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             value = text.strip()
             return value or None
 
+        def prompt_export_path(self, session: SessionSummary) -> Path | None:
+            default_path = self.current_codex_home / default_session_markdown_filename(session)
+            selected, _selected_filter = QtWidgets.QFileDialog.getSaveFileName(
+                self,
+                t("export_markdown_title"),
+                str(default_path),
+                t("export_markdown_filter"),
+            )
+            if not selected:
+                return None
+            return Path(selected)
+
+        def export_one_session(self, session: SessionSummary) -> None:
+            output_path = self.prompt_export_path(session)
+            if output_path is None:
+                return
+            try:
+                written_path = export_session_markdown(session, output_path)
+            except Exception as exc:
+                QtWidgets.QMessageBox.critical(self, t("export_failed_title"), str(exc))
+                return
+            QtWidgets.QMessageBox.information(
+                self,
+                t("export_complete_title"),
+                t("export_complete_body", output_path=written_path),
+            )
+
+        def export_selected(self, *, in_trash: bool) -> None:
+            panel = self.trash_panel if in_trash else self.active_panel
+            sessions = panel.selected_sessions()
+            if len(sessions) != 1:
+                QtWidgets.QMessageBox.information(
+                    self,
+                    t("export_single_select_title"),
+                    t("export_single_select_body"),
+                )
+                return
+            self.export_one_session(sessions[0])
+
         def rename_one_session(self, session: SessionSummary, *, in_trash: bool) -> None:
             new_name = self.prompt_new_name(session.thread_name or "")
             if not new_name:
@@ -1961,6 +2207,18 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
 
         def rename_trash_selected(self) -> None:
             self.rename_selected(in_trash=True)
+
+        def export_active_selected(self) -> None:
+            self.export_selected(in_trash=False)
+
+        def export_trash_selected(self) -> None:
+            self.export_selected(in_trash=True)
+
+        def export_active_session(self, session: SessionSummary) -> None:
+            self.export_one_session(session)
+
+        def export_trash_session(self, session: SessionSummary) -> None:
+            self.export_one_session(session)
 
         def rename_active_session(self, session: SessionSummary) -> None:
             self.rename_one_session(session, in_trash=False)
@@ -2150,6 +2408,14 @@ def build_parser(language: str | None = None) -> argparse.ArgumentParser:
     projects_parser.add_argument("--trash", action="store_true", help=localize("projects_trash_help"))
     projects_parser.add_argument("--json", action="store_true", help=localize("json_help"))
     projects_parser.set_defaults(func=command_projects)
+
+    export_parser = subparsers.add_parser("export", help=localize("export_help"))
+    add_language_argument(export_parser, help_text=localize("lang_help"))
+    export_parser.add_argument("--codex-home", help=localize("codex_home_help"))
+    export_parser.add_argument("--id", required=True, help=localize("export_id_help"))
+    export_parser.add_argument("--output", help=localize("export_output_help"))
+    export_parser.add_argument("--trash", action="store_true", help=localize("export_trash_help"))
+    export_parser.set_defaults(func=command_export)
 
     rename_parser = subparsers.add_parser("rename", help=localize("rename_help"))
     add_language_argument(rename_parser, help_text=localize("lang_help"))

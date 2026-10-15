@@ -29,6 +29,8 @@ def create_session_fixture(
     workspace_root = codex_home / "workspace-alpha"
     updated_at = "2026-10-12T10:00:00+00:00"
     rollout_path = codex_home / "sessions" / "workspace-alpha" / session_id / "rollout.jsonl"
+    user_text = "How do I export this session?"
+    assistant_text = "Use the new Markdown export flow."
 
     write_jsonl(
         codex_home / "session_index.jsonl",
@@ -38,7 +40,9 @@ def create_session_fixture(
         rollout_path,
         [
             {
+                "type": "session_meta",
                 "timestamp": updated_at,
+                "ordinal": 0,
                 "payload": {
                     "session_id": session_id,
                     "timestamp": updated_at,
@@ -47,7 +51,29 @@ def create_session_fixture(
                     "cli_version": app.__version__,
                     "runtime_workspace_roots": [str(workspace_root)],
                 },
-            }
+            },
+            {
+                "timestamp": "2026-10-12T10:01:00+00:00",
+                "ordinal": 1,
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "id": f"msg-user-{session_id}",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": user_text}],
+                },
+            },
+            {
+                "timestamp": "2026-10-12T10:02:00+00:00",
+                "ordinal": 2,
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "id": f"msg-assistant-{session_id}",
+                    "role": "assistant",
+                    "content": [{"type": "output_text", "text": assistant_text}],
+                },
+            },
         ],
     )
     return rollout_path
@@ -152,6 +178,55 @@ def test_cli_query_json_outputs_expected_payload(tmp_path: Path) -> None:
     assert payload[0]["id"] == "session-1"
     assert payload[0]["thread_name"] == "First session"
     assert payload[0]["rollout_paths"] == [str(codex_home / "sessions" / "workspace-alpha" / "session-1" / "rollout.jsonl")]
+
+
+def test_build_session_markdown_includes_transcript(tmp_path: Path) -> None:
+    codex_home = tmp_path / "codex-home"
+    create_session_fixture(codex_home)
+
+    session = app.build_session_summaries(codex_home)[0]
+    markdown = app.build_session_markdown(session)
+
+    assert markdown.startswith("# First session\n")
+    assert "- Session ID: `session-1`" in markdown
+    assert "## Transcript" in markdown
+    assert "### User -" in markdown
+    assert "How do I export this session?" in markdown
+    assert "### Assistant -" in markdown
+    assert "Use the new Markdown export flow." in markdown
+
+
+def test_cli_export_markdown_writes_expected_file(tmp_path: Path) -> None:
+    codex_home = tmp_path / "codex-home"
+    create_session_fixture(codex_home)
+    output_path = tmp_path / "exports" / "session-1.md"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(REPO_ROOT / "manage_codex_sessions.py"),
+            "--lang",
+            "en",
+            "export",
+            "--codex-home",
+            str(codex_home),
+            "--id",
+            "session-1",
+            "--output",
+            str(output_path),
+        ],
+        check=True,
+        capture_output=True,
+        cwd=REPO_ROOT,
+        text=True,
+    )
+
+    assert "Exported session session-1 to Markdown" in result.stdout
+    assert output_path.exists()
+    exported = output_path.read_text(encoding="utf-8")
+    assert "# First session" in exported
+    assert "How do I export this session?" in exported
+    assert "Use the new Markdown export flow." in exported
 
 
 def test_cli_and_gui_report_version() -> None:

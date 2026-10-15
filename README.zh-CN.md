@@ -14,6 +14,7 @@
 ## 功能亮点
 
 - 在一个工具中同时查看活动 sessions 和回收站 sessions。
+- 支持从 CLI 或 GUI 将 session 对话导出为 Markdown。
 - 既支持 CLI 改名，也支持在 GUI 中双击 `Thread` 列重命名。
 - 在 GUI 中双击 `Session ID` 列、选中一行或多行后按 `Ctrl+C`、使用右键菜单，或点击 `复制 Session ID` 按钮，即可复制一个或多个 `session_id` 到剪贴板。
 - 默认删除到回收站，之后可恢复或永久清理。
@@ -114,6 +115,12 @@ python manage_codex_sessions.py projects
 python manage_codex_sessions.py rename --id <session-id> --name "新的 session 名称"
 ```
 
+将 session 导出为 Markdown：
+
+```bash
+python manage_codex_sessions.py export --id <session-id> --output ./session.md
+```
+
 将 session 移入回收站：
 
 ```bash
@@ -167,6 +174,7 @@ python manage_codex_sessions_gui.py
 - 活动 sessions / 回收站双标签页。
 - 支持单选、多选、全选。
 - 支持项目筛选和全文搜索。
+- 支持将选中的 session 导出为 Markdown，也支持从右键菜单直接导出。
 - 双击 `Thread` 列即可进入重命名流程。
 - 双击 `Session ID` 列、选中一行或多行后按 `Ctrl+C`、使用右键菜单，或点击 `复制 Session ID` 按钮，即可复制一个或多个 `session_id` 到剪贴板。
 - 支持恢复、永久删除、批量删除等操作。
