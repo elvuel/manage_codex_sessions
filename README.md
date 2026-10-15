@@ -16,8 +16,9 @@ deleting safely to trash, restoring deleted sessions, and packaging the GUI as a
 
 - Inspect active sessions and trashed sessions from one tool.
 - Export a session transcript to Markdown from the CLI or GUI.
-- Rename sessions from the CLI or by double-clicking the `Thread` column or using the right-click menu in the GUI.
-- Copy one or more `session_id` values to the clipboard by double-clicking the `Session ID` column, pressing `Ctrl+C` on selected rows, using the right-click menu, or clicking the `Copy Session ID` button.
+- Preview a session transcript as Markdown from the GUI right-click menu.
+- Rename sessions from the CLI or by using the GUI right-click menu.
+- Copy one or more `session_id` values to the clipboard by pressing `Ctrl+C` on selected rows, using the right-click menu, or clicking the `Copy Session ID` button.
 - Delete to trash by default, then restore or permanently purge later.
 - Filter sessions by project, working directory, title, source, and more.
 - Summarize sessions per project for quick cleanup.
@@ -175,9 +176,11 @@ For GUI-only override, set `CODEX_UI_LANG=en` or `CODEX_UI_LANG=zh-CN` before la
 - Separate tabs for active sessions and trash.
 - Single-select, multi-select, and select-all workflows.
 - Project filter and free-text search.
+- Preview a selected session as Markdown from the right-click menu.
 - Export a selected session to Markdown, including from the right-click menu.
-- In-place rename flow by double-clicking the `Thread` column or using the right-click menu.
-- One-step `session_id` copy for one or many selected rows by double-clicking the `Session ID` column, pressing `Ctrl+C`, using the right-click menu, or clicking the `Copy Session ID` button.
+- Double-click any session row to open the Markdown preview.
+- In-place rename flow from the right-click menu.
+- One-step `session_id` copy for one or many selected rows by pressing `Ctrl+C`, using the right-click menu, or clicking the `Copy Session ID` button.
 - Restore, purge, and bulk delete actions.
 - English and Simplified Chinese CLI support.
 - Top-bar GUI language switch between Simplified Chinese and English.

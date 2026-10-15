@@ -123,6 +123,7 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "trash_title": "Trash",
         "select_all": "Select All",
         "clear_selection": "Clear Selection",
+        "view_markdown": "View Markdown",
         "export_markdown": "Export Markdown",
         "rename": "Rename",
         "delete_to_trash": "Move to Trash",
@@ -137,6 +138,14 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "copy_session_ids_body": "Copied {count} session IDs.",
         "export_markdown_title": "Export Session Markdown",
         "export_markdown_filter": "Markdown Files (*.md);;All Files (*)",
+        "view_markdown_title": "Session Markdown",
+        "view_markdown_failed_title": "Preview Failed",
+        "view_markdown_raw": "Raw Markdown",
+        "view_markdown_preview": "Preview",
+        "find_text_placeholder": "Find text",
+        "find_next": "Find Next",
+        "copy_raw_markdown": "Copy Raw Markdown",
+        "close": "Close",
         "export_single_select_title": "Select One Session",
         "export_single_select_body": "Markdown export supports exactly one selected session.",
         "export_complete_title": "Export Complete",
@@ -206,6 +215,7 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "trash_title": "回收站",
         "select_all": "全选",
         "clear_selection": "清空选择",
+        "view_markdown": "查看 Markdown",
         "export_markdown": "导出 Markdown",
         "rename": "重命名",
         "delete_to_trash": "删除到回收站",
@@ -220,6 +230,14 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "copy_session_ids_body": "已复制 {count} 个 session_id",
         "export_markdown_title": "导出 Session Markdown",
         "export_markdown_filter": "Markdown 文件 (*.md);;所有文件 (*)",
+        "view_markdown_title": "Session Markdown",
+        "view_markdown_failed_title": "预览失败",
+        "view_markdown_raw": "原始 Markdown",
+        "view_markdown_preview": "预览",
+        "find_text_placeholder": "查找文本",
+        "find_next": "查找下一个",
+        "copy_raw_markdown": "复制原始 Markdown",
+        "close": "关闭",
         "export_single_select_title": "请选择一条",
         "export_single_select_body": "导出 Markdown 仅支持单选 session。",
         "export_complete_title": "导出完成",
@@ -1579,7 +1597,9 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
     selection_behavior = getattr(QtWidgets.QAbstractItemView, "SelectionBehavior", QtWidgets.QAbstractItemView)
     edit_trigger = getattr(QtWidgets.QAbstractItemView, "EditTrigger", QtWidgets.QAbstractItemView)
     message_buttons = getattr(QtWidgets.QMessageBox, "StandardButton", QtWidgets.QMessageBox)
+    text_cursor_move = getattr(QtGui.QTextCursor, "MoveOperation", QtGui.QTextCursor)
     sort_order = getattr(QtCore.Qt, "SortOrder", QtCore.Qt)
+    orientation = getattr(QtCore.Qt, "Orientation", QtCore.Qt)
     alignment_flag = getattr(QtCore.Qt, "AlignmentFlag", QtCore.Qt)
     context_menu_policy = getattr(QtCore.Qt, "ContextMenuPolicy", QtCore.Qt)
     shortcut_context = getattr(QtCore.Qt, "ShortcutContext", QtCore.Qt)
@@ -1639,8 +1659,8 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.visible_sessions: list[SessionSummary] = []
             self.session_by_id: dict[str, SessionSummary] = {}
             self.on_state_changed: Any = None
-            self.on_thread_double_clicked: Any = None
             self.on_rename_requested: Any = None
+            self.on_view_markdown_requested: Any = None
             self.on_export_markdown_requested: Any = None
             self.on_session_ids_copied: Any = None
 
@@ -1726,16 +1746,10 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
         def _handle_item_double_clicked(self, item: Any) -> None:
             if item is None:
                 return
-            if item.column() == self.session_id_column:
-                self.copy_session_id_for_row(item.row())
-                return
-            if item.column() != self.thread_column:
-                return
             session = self.session_for_row(item.row())
             if session is None:
                 return
-            if callable(self.on_thread_double_clicked):
-                self.on_thread_double_clicked(session)
+            self.request_view_markdown(session)
 
         def copy_session_id_for_row(self, row: int) -> bool:
             session = self.session_for_row(row)
@@ -1791,6 +1805,8 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             if target_session is not None:
                 rename_action = menu.addAction(t("rename"))
                 rename_action.triggered.connect(lambda checked=False, session=target_session: self.request_rename(session))
+                view_action = menu.addAction(t("view_markdown"))
+                view_action.triggered.connect(lambda checked=False, session=target_session: self.request_view_markdown(session))
                 export_action = menu.addAction(t("export_markdown"))
                 export_action.triggered.connect(lambda checked=False, session=target_session: self.request_export_markdown(session))
             menu.exec(self.table.viewport().mapToGlobal(position))
@@ -1798,6 +1814,10 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
         def request_rename(self, session: SessionSummary) -> None:
             if callable(self.on_rename_requested):
                 self.on_rename_requested(session)
+
+        def request_view_markdown(self, session: SessionSummary) -> None:
+            if callable(self.on_view_markdown_requested):
+                self.on_view_markdown_requested(session)
 
         def request_export_markdown(self, session: SessionSummary) -> None:
             if callable(self.on_export_markdown_requested):
@@ -2003,10 +2023,10 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.tabs.currentChanged.connect(self.update_status)
             self.active_panel.on_state_changed = self.update_status
             self.trash_panel.on_state_changed = self.update_status
-            self.active_panel.on_thread_double_clicked = self.rename_active_session
-            self.trash_panel.on_thread_double_clicked = self.rename_trash_session
             self.active_panel.on_rename_requested = self.rename_active_session
             self.trash_panel.on_rename_requested = self.rename_trash_session
+            self.active_panel.on_view_markdown_requested = self.view_active_session_markdown
+            self.trash_panel.on_view_markdown_requested = self.view_trash_session_markdown
             self.active_panel.on_export_markdown_requested = self.export_active_session
             self.trash_panel.on_export_markdown_requested = self.export_trash_session
             self.active_panel.on_session_ids_copied = self.handle_session_ids_copied
@@ -2173,6 +2193,90 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
                 t("export_complete_body", output_path=written_path),
             )
 
+        def view_one_session_markdown(self, session: SessionSummary) -> None:
+            try:
+                markdown = build_session_markdown(session)
+            except Exception as exc:
+                QtWidgets.QMessageBox.critical(self, t("view_markdown_failed_title"), str(exc))
+                return
+
+            def find_in_view(widget: Any, search_edit: Any, *, restart: bool) -> None:
+                query = search_edit.text().strip()
+                if not query:
+                    return
+                if restart:
+                    cursor = widget.textCursor()
+                    cursor.movePosition(text_cursor_move.Start)
+                    widget.setTextCursor(cursor)
+                found = widget.find(query)
+                if not found:
+                    cursor = widget.textCursor()
+                    cursor.movePosition(text_cursor_move.Start)
+                    widget.setTextCursor(cursor)
+                    widget.find(query)
+
+            dialog = QtWidgets.QDialog(self)
+            dialog.setWindowTitle(f"{t('view_markdown_title')} - {session.thread_name or session.session_id}")
+            dialog.resize(1280, 760)
+
+            layout = QtWidgets.QVBoxLayout(dialog)
+            splitter = QtWidgets.QSplitter(orientation.Horizontal, dialog)
+
+            raw_group = QtWidgets.QGroupBox(t("view_markdown_raw"), splitter)
+            raw_layout = QtWidgets.QVBoxLayout(raw_group)
+            raw_search_layout = QtWidgets.QHBoxLayout()
+            raw_search_edit = QtWidgets.QLineEdit(raw_group)
+            raw_search_edit.setPlaceholderText(t("find_text_placeholder"))
+            raw_search_button = QtWidgets.QPushButton(t("find_next"), raw_group)
+            raw_search_layout.addWidget(raw_search_edit, 1)
+            raw_search_layout.addWidget(raw_search_button)
+            raw_layout.addLayout(raw_search_layout)
+            raw_editor = QtWidgets.QPlainTextEdit(raw_group)
+            raw_editor.setReadOnly(True)
+            raw_editor.setLineWrapMode(QtWidgets.QPlainTextEdit.LineWrapMode.NoWrap)
+            raw_editor.setPlainText(markdown)
+            raw_layout.addWidget(raw_editor)
+            copy_raw_button = QtWidgets.QPushButton(t("copy_raw_markdown"), raw_group)
+            copy_raw_button.clicked.connect(
+                lambda checked=False, text=markdown: QtWidgets.QApplication.clipboard().setText(text)
+                if QtWidgets.QApplication.clipboard() is not None
+                else None
+            )
+            raw_layout.addWidget(copy_raw_button)
+            raw_search_edit.textChanged.connect(lambda _text: find_in_view(raw_editor, raw_search_edit, restart=True))
+            raw_search_edit.returnPressed.connect(lambda: find_in_view(raw_editor, raw_search_edit, restart=False))
+            raw_search_button.clicked.connect(lambda checked=False: find_in_view(raw_editor, raw_search_edit, restart=False))
+
+            preview_group = QtWidgets.QGroupBox(t("view_markdown_preview"), splitter)
+            preview_layout = QtWidgets.QVBoxLayout(preview_group)
+            preview_search_layout = QtWidgets.QHBoxLayout()
+            preview_search_edit = QtWidgets.QLineEdit(preview_group)
+            preview_search_edit.setPlaceholderText(t("find_text_placeholder"))
+            preview_search_button = QtWidgets.QPushButton(t("find_next"), preview_group)
+            preview_search_layout.addWidget(preview_search_edit, 1)
+            preview_search_layout.addWidget(preview_search_button)
+            preview_layout.addLayout(preview_search_layout)
+            preview = QtWidgets.QTextBrowser(preview_group)
+            preview.setOpenExternalLinks(True)
+            if hasattr(preview, "setMarkdown"):
+                preview.setMarkdown(markdown)
+            else:
+                preview.setPlainText(markdown)
+            preview_layout.addWidget(preview)
+            preview_search_edit.textChanged.connect(lambda _text: find_in_view(preview, preview_search_edit, restart=True))
+            preview_search_edit.returnPressed.connect(lambda: find_in_view(preview, preview_search_edit, restart=False))
+            preview_search_button.clicked.connect(lambda checked=False: find_in_view(preview, preview_search_edit, restart=False))
+
+            splitter.setStretchFactor(0, 1)
+            splitter.setStretchFactor(1, 1)
+            layout.addWidget(splitter, 1)
+
+            close_button = QtWidgets.QPushButton(t("close"), dialog)
+            close_button.clicked.connect(dialog.accept)
+            layout.addWidget(close_button)
+
+            dialog.exec()
+
         def export_selected(self, *, in_trash: bool) -> None:
             panel = self.trash_panel if in_trash else self.active_panel
             sessions = panel.selected_sessions()
@@ -2228,6 +2332,12 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
 
         def export_trash_session(self, session: SessionSummary) -> None:
             self.export_one_session(session)
+
+        def view_active_session_markdown(self, session: SessionSummary) -> None:
+            self.view_one_session_markdown(session)
+
+        def view_trash_session_markdown(self, session: SessionSummary) -> None:
+            self.view_one_session_markdown(session)
 
         def rename_active_session(self, session: SessionSummary) -> None:
             self.rename_one_session(session, in_trash=False)
