@@ -1640,6 +1640,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.session_by_id: dict[str, SessionSummary] = {}
             self.on_state_changed: Any = None
             self.on_thread_double_clicked: Any = None
+            self.on_rename_requested: Any = None
             self.on_export_markdown_requested: Any = None
             self.on_session_ids_copied: Any = None
 
@@ -1788,9 +1789,15 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             copy_action = menu.addAction(t("copy_session_id_action"))
             copy_action.triggered.connect(self.copy_selected_or_current_session_ids)
             if target_session is not None:
+                rename_action = menu.addAction(t("rename"))
+                rename_action.triggered.connect(lambda checked=False, session=target_session: self.request_rename(session))
                 export_action = menu.addAction(t("export_markdown"))
                 export_action.triggered.connect(lambda checked=False, session=target_session: self.request_export_markdown(session))
             menu.exec(self.table.viewport().mapToGlobal(position))
+
+        def request_rename(self, session: SessionSummary) -> None:
+            if callable(self.on_rename_requested):
+                self.on_rename_requested(session)
 
         def request_export_markdown(self, session: SessionSummary) -> None:
             if callable(self.on_export_markdown_requested):
@@ -1998,6 +2005,8 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.trash_panel.on_state_changed = self.update_status
             self.active_panel.on_thread_double_clicked = self.rename_active_session
             self.trash_panel.on_thread_double_clicked = self.rename_trash_session
+            self.active_panel.on_rename_requested = self.rename_active_session
+            self.trash_panel.on_rename_requested = self.rename_trash_session
             self.active_panel.on_export_markdown_requested = self.export_active_session
             self.trash_panel.on_export_markdown_requested = self.export_trash_session
             self.active_panel.on_session_ids_copied = self.handle_session_ids_copied
