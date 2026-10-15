@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.2.0] - 2026-10-15
+
+### Added
+
+- GUI support for copying one or many `session_id` values via toolbar button, `Ctrl+C`, and the context menu.
+- CLI and GUI support for exporting a session transcript to Markdown.
+- GUI Markdown preview with split raw/preview panes, per-pane search, and raw Markdown copy.
+
+### Changed
+
+- Double-clicking a session row now opens the Markdown preview.
+- Session rename is now available from the GUI right-click menu.
+
 ## [1.1.1] - 2026-10-12
 
 ### Fixed
