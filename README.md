@@ -16,6 +16,7 @@ deleting safely to trash, restoring deleted sessions, and packaging the GUI as a
 
 - Inspect active sessions and trashed sessions from one tool.
 - Rename sessions from the CLI or by double-clicking the `Thread` column in the GUI.
+- Copy one or more `session_id` values to the clipboard by double-clicking the `Session ID` column, pressing `Ctrl+C` on selected rows, using the right-click menu, or clicking the `Copy Session ID` button.
 - Delete to trash by default, then restore or permanently purge later.
 - Filter sessions by project, working directory, title, source, and more.
 - Summarize sessions per project for quick cleanup.
@@ -168,6 +169,7 @@ For GUI-only override, set `CODEX_UI_LANG=en` or `CODEX_UI_LANG=zh-CN` before la
 - Single-select, multi-select, and select-all workflows.
 - Project filter and free-text search.
 - In-place rename flow by double-clicking the `Thread` column.
+- One-step `session_id` copy for one or many selected rows by double-clicking the `Session ID` column, pressing `Ctrl+C`, using the right-click menu, or clicking the `Copy Session ID` button.
 - Restore, purge, and bulk delete actions.
 - English and Simplified Chinese CLI support.
 - Top-bar GUI language switch between Simplified Chinese and English.

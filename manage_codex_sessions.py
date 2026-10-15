@@ -131,6 +131,9 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "ready": "Ready",
         "choose_codex_home": "Choose CODEX_HOME",
         "load_failed_title": "Load Failed",
+        "copy_session_id_action": "Copy Session ID",
+        "copy_session_id_body": "Session ID copied.",
+        "copy_session_ids_body": "Copied {count} session IDs.",
         "status_summary": "CODEX_HOME: {codex_home} | Active {active_count} | Trash {trash_count} | Current: {title} Visible {visible_count} | Selected {selected_count}",
         "rename_session_title": "Rename Session",
         "rename_session_label": "New name:",
@@ -203,6 +206,9 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "ready": "就绪",
         "choose_codex_home": "选择 CODEX_HOME",
         "load_failed_title": "加载失败",
+        "copy_session_id_action": "复制 Session ID",
+        "copy_session_id_body": "session_id已复制",
+        "copy_session_ids_body": "已复制 {count} 个 session_id",
         "status_summary": "CODEX_HOME: {codex_home} | 活动 {active_count} | 回收站 {trash_count} | 当前: {title} 显示 {visible_count} | 已选 {selected_count}",
         "rename_session_title": "重命名 session",
         "rename_session_label": "新的名称：",
@@ -1383,6 +1389,10 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
     edit_trigger = getattr(QtWidgets.QAbstractItemView, "EditTrigger", QtWidgets.QAbstractItemView)
     message_buttons = getattr(QtWidgets.QMessageBox, "StandardButton", QtWidgets.QMessageBox)
     sort_order = getattr(QtCore.Qt, "SortOrder", QtCore.Qt)
+    alignment_flag = getattr(QtCore.Qt, "AlignmentFlag", QtCore.Qt)
+    context_menu_policy = getattr(QtCore.Qt, "ContextMenuPolicy", QtCore.Qt)
+    shortcut_context = getattr(QtCore.Qt, "ShortcutContext", QtCore.Qt)
+    widget_attribute = getattr(QtCore.Qt, "WidgetAttribute", QtCore.Qt)
 
     def t(key: str, **kwargs: object) -> str:
         return format_gui_text(ui_language, key, **kwargs)
@@ -1439,6 +1449,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.session_by_id: dict[str, SessionSummary] = {}
             self.on_state_changed: Any = None
             self.on_thread_double_clicked: Any = None
+            self.on_session_ids_copied: Any = None
 
             layout = QtWidgets.QVBoxLayout(self)
 
@@ -1479,11 +1490,18 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.table.setAlternatingRowColors(True)
             self.table.setSortingEnabled(True)
             self.table.verticalHeader().setVisible(False)
+            self.table.setContextMenuPolicy(context_menu_policy.CustomContextMenu)
             header = self.table.horizontalHeader()
             for column in range(len(headers)):
                 mode = resize_mode.ResizeToContents if column < len(headers) - 2 else resize_mode.Stretch
                 header.setSectionResizeMode(column, mode)
             layout.addWidget(self.table, 1)
+
+            copy_key_sequence = QtGui.QKeySequence.StandardKey.Copy
+            self.copy_session_id_shortcut = QtGui.QShortcut(copy_key_sequence, self.table)
+            if hasattr(self.copy_session_id_shortcut, "setContext"):
+                self.copy_session_id_shortcut.setContext(shortcut_context.WidgetShortcut)
+            self.copy_session_id_shortcut.activated.connect(self.copy_selected_or_current_session_ids)
 
             button_layout = QtWidgets.QHBoxLayout()
             self.buttons: dict[str, Any] = {}
@@ -1499,24 +1517,83 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.filter_edit.textChanged.connect(self.apply_filter)
             self.table.itemSelectionChanged.connect(self._notify_state_changed)
             self.table.itemDoubleClicked.connect(self._handle_item_double_clicked)
+            self.table.customContextMenuRequested.connect(self._show_table_context_menu)
 
             if "select_all" in self.buttons:
                 self.buttons["select_all"].clicked.connect(self.select_all_rows)
             if "clear_selection" in self.buttons:
                 self.buttons["clear_selection"].clicked.connect(self.clear_selection)
+            if "copy_session_id" in self.buttons:
+                self.buttons["copy_session_id"].clicked.connect(self.copy_selected_or_current_session_ids)
 
         def _notify_state_changed(self) -> None:
             if callable(self.on_state_changed):
                 self.on_state_changed()
 
         def _handle_item_double_clicked(self, item: Any) -> None:
-            if item is None or item.column() != self.thread_column:
+            if item is None:
+                return
+            if item.column() == self.session_id_column:
+                self.copy_session_id_for_row(item.row())
+                return
+            if item.column() != self.thread_column:
                 return
             session = self.session_for_row(item.row())
             if session is None:
                 return
             if callable(self.on_thread_double_clicked):
                 self.on_thread_double_clicked(session)
+
+        def copy_session_id_for_row(self, row: int) -> bool:
+            session = self.session_for_row(row)
+            if session is None:
+                return False
+            return self.copy_session_ids([session.session_id])
+
+        def copy_session_ids(self, session_ids: list[str]) -> bool:
+            clipboard = QtWidgets.QApplication.clipboard()
+            if clipboard is None:
+                return False
+            unique_session_ids = list(dict.fromkeys(session_ids))
+            if not unique_session_ids:
+                return False
+            clipboard.setText("\n".join(unique_session_ids))
+            if callable(self.on_session_ids_copied):
+                self.on_session_ids_copied(unique_session_ids)
+            return True
+
+        def copy_selected_or_current_session_ids(self) -> None:
+            model = self.table.selectionModel()
+            if model is not None:
+                selected_session_ids: list[str] = []
+                seen_rows: set[int] = set()
+                for selected_index in model.selectedRows():
+                    row = selected_index.row()
+                    if row in seen_rows:
+                        continue
+                    session = self.session_for_row(row)
+                    if session is not None:
+                        selected_session_ids.append(session.session_id)
+                        seen_rows.add(row)
+                if selected_session_ids:
+                    self.copy_session_ids(selected_session_ids)
+                    return
+            current_row = self.table.currentRow()
+            if current_row >= 0:
+                self.copy_session_id_for_row(current_row)
+
+        def _show_table_context_menu(self, position: Any) -> None:
+            index = self.table.indexAt(position)
+            if index.isValid():
+                model = self.table.selectionModel()
+                selected_rows = {selected_index.row() for selected_index in model.selectedRows()} if model is not None else set()
+                if index.row() not in selected_rows:
+                    self.table.selectRow(index.row())
+                self.table.setCurrentCell(index.row(), self.session_id_column)
+            menu = QtWidgets.QMenu(self.table)
+            copy_action = menu.addAction(t("copy_session_id_action"))
+            copy_action.triggered.connect(self.copy_selected_or_current_session_ids)
+            menu.exec(self.table.viewport().mapToGlobal(position))
 
         def set_sessions(self, sessions: list[SessionSummary]) -> None:
             self.all_sessions = list(sessions)
@@ -1636,6 +1713,9 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.current_codex_home = initial_codex_home
             self.active_sessions: list[SessionSummary] = []
             self.trash_sessions: list[SessionSummary] = []
+            self.toast_timer = QtCore.QTimer(self)
+            self.toast_timer.setSingleShot(True)
+            self.toast_timer.timeout.connect(self.hide_toast)
 
             self.setWindowTitle(t("window_title"))
             self.resize(1420, 860)
@@ -1667,6 +1747,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
                 button_specs=[
                     ("select_all", "select_all"),
                     ("clear_selection", "clear_selection"),
+                    ("copy_session_id", "copy_session_id_action"),
                     ("rename", "rename"),
                     ("delete", "delete_to_trash"),
                 ],
@@ -1677,6 +1758,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
                 button_specs=[
                     ("select_all", "select_all"),
                     ("clear_selection", "clear_selection"),
+                    ("copy_session_id", "copy_session_id_action"),
                     ("rename", "rename"),
                     ("restore", "restore_selected"),
                     ("purge_selected", "purge_selected"),
@@ -1690,6 +1772,21 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.status_label = QtWidgets.QLabel(t("ready"))
             root_layout.addWidget(self.status_label)
 
+            self.toast_label = QtWidgets.QLabel("", self)
+            self.toast_label.hide()
+            self.toast_label.setAlignment(alignment_flag.AlignCenter)
+            self.toast_label.setMargin(8)
+            self.toast_label.setStyleSheet(
+                "QLabel {"
+                "background-color: rgba(32, 32, 32, 220);"
+                "color: white;"
+                "border-radius: 8px;"
+                "font-weight: 600;"
+                "}"
+            )
+            if hasattr(self.toast_label, "setAttribute"):
+                self.toast_label.setAttribute(widget_attribute.WA_TransparentForMouseEvents, True)
+
             self.browse_button.clicked.connect(self.choose_codex_home)
             self.refresh_button.clicked.connect(self.reload_all)
             self.language_combo.currentIndexChanged.connect(self.change_gui_language_from_picker)
@@ -1698,6 +1795,8 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.trash_panel.on_state_changed = self.update_status
             self.active_panel.on_thread_double_clicked = self.rename_active_session
             self.trash_panel.on_thread_double_clicked = self.rename_trash_session
+            self.active_panel.on_session_ids_copied = self.handle_session_ids_copied
+            self.trash_panel.on_session_ids_copied = self.handle_session_ids_copied
 
             self.active_panel.buttons["rename"].clicked.connect(self.rename_active_selected)
             self.active_panel.buttons["delete"].clicked.connect(self.delete_active_selected)
@@ -1785,6 +1884,39 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
                     selected_count=selected_count,
                 )
             )
+
+        def position_toast(self) -> None:
+            self.toast_label.adjustSize()
+            margin = 16
+            status_geometry = self.status_label.geometry()
+            x = max(margin, self.width() - self.toast_label.width() - margin)
+            if status_geometry.isValid():
+                y = max(margin, status_geometry.top() - self.toast_label.height() - 12)
+            else:
+                y = max(margin, self.height() - self.toast_label.height() - margin)
+            self.toast_label.move(x, y)
+
+        def show_toast(self, message: str, *, timeout_ms: int = 2000) -> None:
+            self.toast_label.setText(message)
+            self.position_toast()
+            self.toast_label.show()
+            self.toast_label.raise_()
+            self.toast_timer.start(timeout_ms)
+
+        def hide_toast(self) -> None:
+            self.toast_timer.stop()
+            self.toast_label.hide()
+
+        def handle_session_ids_copied(self, session_ids: list[str]) -> None:
+            if len(session_ids) == 1:
+                self.show_toast(t("copy_session_id_body"))
+                return
+            self.show_toast(t("copy_session_ids_body", count=len(session_ids)))
+
+        def resizeEvent(self, event: Any) -> None:
+            super().resizeEvent(event)
+            if self.toast_label.isVisible():
+                self.position_toast()
 
         def prompt_new_name(self, current_name: str) -> str | None:
             text, accepted = QtWidgets.QInputDialog.getText(

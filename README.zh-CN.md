@@ -15,6 +15,7 @@
 
 - 在一个工具中同时查看活动 sessions 和回收站 sessions。
 - 既支持 CLI 改名，也支持在 GUI 中双击 `Thread` 列重命名。
+- 在 GUI 中双击 `Session ID` 列、选中一行或多行后按 `Ctrl+C`、使用右键菜单，或点击 `复制 Session ID` 按钮，即可复制一个或多个 `session_id` 到剪贴板。
 - 默认删除到回收站，之后可恢复或永久清理。
 - 支持按项目、工作目录、标题、来源等条件筛选。
 - 支持按项目汇总 sessions，便于集中清理。
@@ -167,6 +168,7 @@ python manage_codex_sessions_gui.py
 - 支持单选、多选、全选。
 - 支持项目筛选和全文搜索。
 - 双击 `Thread` 列即可进入重命名流程。
+- 双击 `Session ID` 列、选中一行或多行后按 `Ctrl+C`、使用右键菜单，或点击 `复制 Session ID` 按钮，即可复制一个或多个 `session_id` 到剪贴板。
 - 支持恢复、永久删除、批量删除等操作。
 - 支持 CLI 中英文输出。
 - GUI 顶部支持在简体中文与 English 之间切换。
