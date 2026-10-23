@@ -17,16 +17,16 @@ jobs:
           - os-name: Windows
             runs-on: windows-latest
           - os-name: Linux
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-24.04
           - os-name: macOS
             runs-on: macos-latest
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.14'
 
@@ -47,14 +47,14 @@ jobs:
 
   typescript-cli:
     name: Test TypeScript CLI package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: npm
@@ -76,14 +76,14 @@ jobs:
 
   vscode-extension:
     name: Test VS Code extension
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: npm

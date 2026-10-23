@@ -32,13 +32,13 @@ jobs:
           - os-name: Windows
             runs-on: windows-latest
           - os-name: Linux
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-24.04
           - os-name: macOS
             runs-on: macos-latest
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ env.RELEASE_TAG }}
 
@@ -54,7 +54,7 @@ jobs:
           esac
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.14'
 
@@ -109,7 +109,7 @@ jobs:
             --output-dir release-artifacts
 
       - name: Upload packaged asset
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-${{ runner.os }}-${{ runner.arch }}
           path: release-artifacts/*
@@ -117,11 +117,11 @@ jobs:
 
   typescript-cli:
     name: Package TypeScript CLI
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ env.RELEASE_TAG }}
 
@@ -137,7 +137,7 @@ jobs:
           esac
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: npm
@@ -161,7 +161,7 @@ jobs:
         run: npm run pack:tarball
 
       - name: Upload TypeScript CLI artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-typescript-cli
           path: manage-codex-sessions-ts/*.tgz
@@ -169,11 +169,11 @@ jobs:
 
   vscode-extension:
     name: Package VS Code extension
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ env.RELEASE_TAG }}
 
@@ -189,7 +189,7 @@ jobs:
           esac
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: npm
@@ -217,7 +217,7 @@ jobs:
         run: npm run package:vsix
 
       - name: Upload `.vsix` artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-vscode-extension
           path: vscode-extension/dist/*.vsix
@@ -226,13 +226,13 @@ jobs:
   marketplace:
     name: Publish VS Code extension to Marketplace
     if: ${{ vars.VSCODE_MARKETPLACE_ENABLED == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - vscode-extension
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ env.RELEASE_TAG }}
 
@@ -248,7 +248,7 @@ jobs:
           esac
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: npm
@@ -273,7 +273,7 @@ jobs:
         run: npm run check:marketplace
 
       - name: Download packaged VSIX artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-vscode-extension
           path: release-vscode-extension
@@ -294,7 +294,7 @@ jobs:
 
   publish:
     name: Publish GitHub Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - build
       - typescript-cli
@@ -302,14 +302,14 @@ jobs:
 
     steps:
       - name: Download packaged assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: release-artifacts
           pattern: release-*
           merge-multiple: true
 
       - name: Publish release assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           files: release-artifacts/*
