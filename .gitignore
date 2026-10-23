@@ -23,6 +23,12 @@ dist/
 *.swp
 *.swo
 .codebase-memory/
+node_modules/
+*.vsix
+
+# VS Code extension build output
+vscode-extension/out/
+
 
 # OS
 .DS_Store
@@ -30,3 +36,9 @@ Thumbs.db
 
 # Local test data
 .tmp_codex_test/
+
+
+
+# Standalone TypeScript CLI build output
+manage-codex-sessions-ts/out/
+manage-codex-sessions-ts/*.tgz

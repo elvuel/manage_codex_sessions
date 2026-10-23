@@ -1,0 +1,55 @@
+{
+  "name": "manage-codex-sessions-ts",
+  "version": "1.3.0",
+  "description": "Standalone TypeScript CLI and core library for browsing and managing local Codex sessions.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elvuel/manage_codex_sessions.git"
+  },
+  "homepage": "https://github.com/elvuel/manage_codex_sessions",
+  "bugs": {
+    "url": "https://github.com/elvuel/manage_codex_sessions/issues"
+  },
+  "keywords": [
+    "codex",
+    "sessions",
+    "cli",
+    "typescript",
+    "markdown"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "./out/core.js",
+  "types": "./out/core.d.ts",
+  "bin": {
+    "manage-codex-sessions-ts": "./out/cli.js"
+  },
+  "exports": {
+    ".": "./out/core.js",
+    "./core": "./out/core.js",
+    "./cli": "./out/cli.js"
+  },
+  "files": [
+    "out/cli.d.ts",
+    "out/cli.js",
+    "out/cli.js.map",
+    "out/core.d.ts",
+    "out/core.js",
+    "out/core.js.map",
+    "README.md",
+    "LICENSE.txt"
+  ],
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('out',{recursive:true,force:true})\"",
+    "compile": "tsc -p ./",
+    "test": "npm run clean && npm run compile && node --test ./out/core.test.js ./out/cli.test.js",
+    "pack:tarball": "npm pack",
+    "prepack": "npm run clean && npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "typescript": "^5.9.3"
+  }
+}

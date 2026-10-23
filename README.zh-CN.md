@@ -260,3 +260,42 @@ powershell -ExecutionPolicy Bypass -File .\build_manage_codex_sessions_gui.ps1 -
 - `~/.codex/session_trash/`
 
 也可以通过 `--codex-home` 指定其他 Codex 数据目录。
+
+## 独立 TypeScript CLI 包
+
+仓库现在也包含一个独立 npm 包，位于 `manage-codex-sessions-ts/`。
+它包含 TypeScript 核心和独立 CLI，并可在该目录下打包为 npm tarball。
+
+安装和使用方式见 `manage-codex-sessions-ts/README.md`。
+
+## VS Code 扩展原型
+
+仓库现在包含一个位于 `vscode-extension/` 的 VS Code 扩展 MVP。
+它现在使用原生 TypeScript 核心直接读写 Codex 数据，为编辑器提供活动 session、回收站、Markdown 预览、导出、重命名、恢复和删除等原生界面。
+
+安装和运行方式见 `vscode-extension/README.md`。
+
+安装完成后，可按以下方式使用：
+
+- 左侧活动栏会出现 `Codex Sessions` 图标。
+- 其中包含 3 个视图：
+  - `Active Sessions`
+  - `Trash`
+  - `Projects`
+- 选中某个 session 行后，可在树视图中查看它。
+- session 行上的内联按钮可用于：
+  - 预览 session Markdown
+  - 复制 session ID
+- 右键某个 session 可打开上下文菜单。根据该 session 当前是在活动列表还是回收站中，可执行这些操作：
+  - 预览 session Markdown
+  - 导出 session Markdown
+  - 重命名 session
+  - 复制 session ID
+  - 将 session 移到回收站
+  - 恢复 session
+  - 永久删除 session
+- 视图标题栏上的操作可用于刷新列表，或修改 `CODEX_HOME` 覆盖路径。
+
+## 许可证
+
+本项目采用 MIT License，详见 LICENSE。

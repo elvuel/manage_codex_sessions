@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.3.0] - 2026-10-23
+
+### Added
+
+- Standalone TypeScript CLI packaging under manage-codex-sessions-ts/.
+- Native VS Code extension support for browsing active sessions, trash, projects, Markdown previews, export, rename, restore, and delete flows.
+- GitHub Actions support for packaging and optionally publishing the VS Code extension to the Marketplace.
+
+### Changed
+
+- Unified the Python app, standalone TypeScript CLI, and VS Code extension under the shared 1.3.0 release version.
+- Switched the project licensing metadata and bundled license texts to MIT.
 ## [1.2.0] - 2026-10-15
 
 ### Added

@@ -1,0 +1,10 @@
+src/**
+scripts/**
+tsconfig.json
+package-lock.json
+node_modules/**
+dist/**
+manage_codex_sessions.py
+out/**/*.test.js
+out/**/*.test.js.map
+*.ts

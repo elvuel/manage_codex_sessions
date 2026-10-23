@@ -44,3 +44,55 @@ jobs:
           python manage_codex_sessions.py --version
           python manage_codex_sessions_gui.py --help
           python manage_codex_sessions_gui.py --version
+
+  typescript-cli:
+    name: Test TypeScript CLI package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: manage-codex-sessions-ts/package-lock.json
+
+      - name: Install TypeScript CLI dependencies
+        working-directory: manage-codex-sessions-ts
+        run: npm ci
+
+      - name: Compile and test TypeScript CLI package
+        working-directory: manage-codex-sessions-ts
+        run: npm test
+
+      - name: Smoke test TypeScript CLI executable
+        working-directory: manage-codex-sessions-ts
+        run: |
+          node out/cli.js --help
+          node out/cli.js --version
+
+  vscode-extension:
+    name: Test VS Code extension
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+
+      - name: Install extension dependencies
+        working-directory: vscode-extension
+        run: npm ci
+
+      - name: Compile and test extension
+        working-directory: vscode-extension
+        run: npm test

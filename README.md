@@ -261,3 +261,21 @@ By default, the tool reads from the current user's Codex data directory:
 - `~/.codex/session_trash/`
 
 Use `--codex-home` to point at a different Codex data directory.
+
+## Standalone TypeScript CLI package
+
+This repository now also includes a standalone npm package under `manage-codex-sessions-ts/`.
+It contains the TypeScript core plus a standalone CLI, and can be packed as an npm tarball from that directory.
+
+See `manage-codex-sessions-ts/README.md` for setup and usage.
+
+## VS Code extension prototype
+
+This repository now includes a VS Code extension MVP under `vscode-extension/`.
+It provides a native editor UI for browsing active sessions, viewing trash, previewing Markdown, exporting, renaming, restoring, and deleting sessions with a TypeScript core that reads Codex data directly.
+
+See `vscode-extension/README.md` for setup and usage.
+
+## License
+
+Licensed under the MIT License. See LICENSE.

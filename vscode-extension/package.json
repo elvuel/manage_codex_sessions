@@ -1,0 +1,207 @@
+{
+  "name": "manage-codex-sessions-vscode",
+  "displayName": "Manage Codex Sessions",
+  "description": "Browse, preview, rename, export, trash, restore, and purge local Codex sessions from VS Code.",
+  "version": "1.3.0",
+  "publisher": "elvuel",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elvuel/manage_codex_sessions.git"
+  },
+  "homepage": "https://github.com/elvuel/manage_codex_sessions",
+  "bugs": {
+    "url": "https://github.com/elvuel/manage_codex_sessions/issues"
+  },
+  "keywords": [
+    "codex",
+    "sessions",
+    "vscode",
+    "extension",
+    "markdown"
+  ],
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:manageCodexSessions.activeSessions",
+    "onView:manageCodexSessions.trashSessions",
+    "onView:manageCodexSessions.projects"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "manageCodexSessions",
+          "title": "Codex Sessions",
+          "icon": "media/activitybar-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "manageCodexSessions": [
+        {
+          "id": "manageCodexSessions.activeSessions",
+          "name": "Active Sessions"
+        },
+        {
+          "id": "manageCodexSessions.trashSessions",
+          "name": "Trash"
+        },
+        {
+          "id": "manageCodexSessions.projects",
+          "name": "Projects"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "manageCodexSessions.refresh",
+        "title": "Refresh Sessions"
+      },
+      {
+        "command": "manageCodexSessions.setCodexHome",
+        "title": "Set CODEX_HOME"
+      },
+      {
+        "command": "manageCodexSessions.previewSession",
+        "title": "Preview Session Markdown",
+        "icon": {
+          "light": "media/commands/light/preview-session.svg",
+          "dark": "media/commands/dark/preview-session.svg"
+        }
+      },
+      {
+        "command": "manageCodexSessions.exportSession",
+        "title": "Export Session Markdown"
+      },
+      {
+        "command": "manageCodexSessions.renameSession",
+        "title": "Rename Session"
+      },
+      {
+        "command": "manageCodexSessions.deleteSession",
+        "title": "Move Session to Trash"
+      },
+      {
+        "command": "manageCodexSessions.restoreSession",
+        "title": "Restore Session"
+      },
+      {
+        "command": "manageCodexSessions.purgeSession",
+        "title": "Delete Session Permanently"
+      },
+      {
+        "command": "manageCodexSessions.copySessionId",
+        "title": "Copy Session ID",
+        "icon": {
+          "light": "media/commands/light/copy-session.svg",
+          "dark": "media/commands/dark/copy-session.svg"
+        }
+      },
+      {
+        "command": "manageCodexSessions.openSettings",
+        "title": "Open Manage Codex Sessions Settings"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "manageCodexSessions.refresh",
+          "when": "view =~ /^manageCodexSessions\\./",
+          "group": "navigation"
+        },
+        {
+          "command": "manageCodexSessions.setCodexHome",
+          "when": "view =~ /^manageCodexSessions\\./",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "manageCodexSessions.previewSession",
+          "when": "viewItem == session-active || viewItem == session-trash",
+          "group": "inline"
+        },
+        {
+          "command": "manageCodexSessions.copySessionId",
+          "when": "viewItem == session-active || viewItem == session-trash",
+          "group": "inline@1"
+        },
+        {
+          "command": "manageCodexSessions.exportSession",
+          "when": "viewItem == session-active || viewItem == session-trash",
+          "group": "navigation"
+        },
+        {
+          "command": "manageCodexSessions.renameSession",
+          "when": "viewItem == session-active || viewItem == session-trash",
+          "group": "navigation@1"
+        },
+        {
+          "command": "manageCodexSessions.deleteSession",
+          "when": "viewItem == session-active",
+          "group": "navigation@2"
+        },
+        {
+          "command": "manageCodexSessions.restoreSession",
+          "when": "viewItem == session-trash",
+          "group": "navigation@2"
+        },
+        {
+          "command": "manageCodexSessions.purgeSession",
+          "when": "viewItem == session-trash",
+          "group": "navigation@3"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "manageCodexSessions.refresh"
+        },
+        {
+          "command": "manageCodexSessions.setCodexHome"
+        },
+        {
+          "command": "manageCodexSessions.openSettings"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Manage Codex Sessions",
+      "properties": {
+        "manageCodexSessions.codexHome": {
+          "type": "string",
+          "default": "",
+          "description": "Optional CODEX_HOME override for browsing sessions."
+        },
+        "manageCodexSessions.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh the session views when the current CODEX_HOME changes on disk."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "test": "npm run clean && npm run compile && node --test ./out/core.test.js",
+    "watch": "tsc -watch -p ./",
+    "package:vsix": "npm run clean && npm run compile && npm exec -- vsce package --out ./dist/manage-codex-sessions-vscode.vsix",
+    "vscode:prepublish": "npm run clean && npm run compile",
+    "clean": "node -e \"require(\\\"node:fs\\\").rmSync(\\\"out\\\",{recursive:true,force:true})\"",
+    "publish:marketplace": "npm run check:marketplace && npm run package:vsix && npm exec -- vsce publish --packagePath ./dist/manage-codex-sessions-vscode.vsix --skip-duplicate",
+    "publish:marketplace:pre": "npm run check:marketplace && npm run package:vsix && npm exec -- vsce publish --packagePath ./dist/manage-codex-sessions-vscode.vsix --pre-release --skip-duplicate",
+    "check:marketplace": "node ./scripts/check-marketplace.js"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^4.0.0",
+    "typescript": "^5.9.3"
+  },
+  "icon": "media/manage_codex_sessions.png"
+}

@@ -58,6 +58,38 @@ jobs:
         with:
           python-version: '3.14'
 
+      - name: Validate Python version matches release tag
+        shell: bash
+        run: |
+          PYPROJECT_VERSION=$(python - <<'PY'
+          from pathlib import Path
+          import re
+          text = Path('pyproject.toml').read_text(encoding='utf-8')
+          match = re.search(r'^version = "([^"]+)"$', text, re.MULTILINE)
+          if not match:
+              raise SystemExit('Unable to read version from pyproject.toml')
+          print(match.group(1))
+          PY
+          )
+          APP_VERSION=$(python - <<'PY'
+          from pathlib import Path
+          import re
+          text = Path('manage_codex_sessions.py').read_text(encoding='utf-8')
+          match = re.search(r'^__version__ = "([^"]+)"$', text, re.MULTILINE)
+          if not match:
+              raise SystemExit('Unable to read __version__ from manage_codex_sessions.py')
+          print(match.group(1))
+          PY
+          )
+          if [ "${PYPROJECT_VERSION}" != "${APP_VERSION}" ]; then
+            echo "Python version mismatch: pyproject.toml is ${PYPROJECT_VERSION}, manage_codex_sessions.py is ${APP_VERSION}." >&2
+            exit 1
+          fi
+          if [ "v${PYPROJECT_VERSION}" != "${RELEASE_TAG}" ]; then
+            echo "Python release version mismatch: pyproject.toml is ${PYPROJECT_VERSION}, release tag is ${RELEASE_TAG}." >&2
+            exit 1
+          fi
+
       - name: Install Linux packaging dependencies
         if: runner.os == 'Linux'
         run: |
@@ -83,10 +115,190 @@ jobs:
           path: release-artifacts/*
           if-no-files-found: error
 
+  typescript-cli:
+    name: Package TypeScript CLI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Validate release tag
+        shell: bash
+        run: |
+          case "${RELEASE_TAG}" in
+            v*) ;;
+            *)
+              echo "Expected a v* tag, got: ${RELEASE_TAG}" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: manage-codex-sessions-ts/package-lock.json
+
+      - name: Validate TypeScript CLI version matches release tag
+        shell: bash
+        run: |
+          CLI_VERSION=$(node -p "require('./manage-codex-sessions-ts/package.json').version")
+          if [ "v${CLI_VERSION}" != "${RELEASE_TAG}" ]; then
+            echo "TypeScript CLI version mismatch: package.json is ${CLI_VERSION}, release tag is ${RELEASE_TAG}." >&2
+            exit 1
+          fi
+
+      - name: Install TypeScript CLI dependencies
+        working-directory: manage-codex-sessions-ts
+        run: npm ci
+
+      - name: Pack TypeScript CLI tarball
+        working-directory: manage-codex-sessions-ts
+        run: npm run pack:tarball
+
+      - name: Upload TypeScript CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-typescript-cli
+          path: manage-codex-sessions-ts/*.tgz
+          if-no-files-found: error
+
+  vscode-extension:
+    name: Package VS Code extension
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Validate release tag
+        shell: bash
+        run: |
+          case "${RELEASE_TAG}" in
+            v*) ;;
+            *)
+              echo "Expected a v* tag, got: ${RELEASE_TAG}" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+
+      - name: Validate extension version matches release tag
+        shell: bash
+        run: |
+          EXT_VERSION=$(node -p "require('./vscode-extension/package.json').version")
+          if [ "v${EXT_VERSION}" != "${RELEASE_TAG}" ]; then
+            echo "Extension version mismatch: package.json is ${EXT_VERSION}, release tag is ${RELEASE_TAG}." >&2
+            exit 1
+          fi
+
+      - name: Install extension dependencies
+        working-directory: vscode-extension
+        run: npm ci
+
+      - name: Run extension tests
+        working-directory: vscode-extension
+        run: npm test
+
+      - name: Package `.vsix`
+        working-directory: vscode-extension
+        run: npm run package:vsix
+
+      - name: Upload `.vsix` artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-vscode-extension
+          path: vscode-extension/dist/*.vsix
+          if-no-files-found: error
+
+  marketplace:
+    name: Publish VS Code extension to Marketplace
+    if: ${{ vars.VSCODE_MARKETPLACE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    needs:
+      - vscode-extension
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Validate release tag
+        shell: bash
+        run: |
+          case "${RELEASE_TAG}" in
+            v*) ;;
+            *)
+              echo "Expected a v* tag, got: ${RELEASE_TAG}" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+
+      - name: Install extension dependencies
+        working-directory: vscode-extension
+        run: npm ci
+
+      - name: Validate Marketplace secret
+        shell: bash
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "Missing GitHub Actions secret VSCE_PAT." >&2
+            exit 1
+          fi
+
+      - name: Verify Marketplace metadata
+        working-directory: vscode-extension
+        run: npm run check:marketplace
+
+      - name: Download packaged VSIX artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-vscode-extension
+          path: release-vscode-extension
+
+      - name: Publish stable extension
+        if: ${{ !contains(env.RELEASE_TAG, '-rc') && !contains(env.RELEASE_TAG, '-beta') && !contains(env.RELEASE_TAG, '-alpha') }}
+        working-directory: vscode-extension
+        run: npm exec -- vsce publish --packagePath ../release-vscode-extension/manage-codex-sessions-vscode.vsix --skip-duplicate
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Publish pre-release extension
+        if: ${{ contains(env.RELEASE_TAG, '-rc') || contains(env.RELEASE_TAG, '-beta') || contains(env.RELEASE_TAG, '-alpha') }}
+        working-directory: vscode-extension
+        run: npm exec -- vsce publish --packagePath ../release-vscode-extension/manage-codex-sessions-vscode.vsix --pre-release --skip-duplicate
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
   publish:
     name: Publish GitHub Release
     runs-on: ubuntu-latest
-    needs: build
+    needs:
+      - build
+      - typescript-cli
+      - vscode-extension
 
     steps:
       - name: Download packaged assets

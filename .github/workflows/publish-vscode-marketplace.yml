@@ -1,0 +1,73 @@
+name: Publish VS Code extension to Marketplace
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to publish (branch, tag, or commit)
+        required: true
+        default: main
+        type: string
+      pre_release:
+        description: Publish as a pre-release
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  publish-marketplace:
+    name: Publish extension to Marketplace
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+
+      - name: Install extension dependencies
+        working-directory: vscode-extension
+        run: npm ci
+
+      - name: Verify Marketplace metadata
+        working-directory: vscode-extension
+        run: npm run check:marketplace
+
+      - name: Validate Marketplace secret
+        shell: bash
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "Missing GitHub Actions secret VSCE_PAT." >&2
+            exit 1
+          fi
+
+      - name: Run extension tests
+        working-directory: vscode-extension
+        run: npm test
+
+      - name: Publish stable extension
+        if: ${{ !inputs.pre_release }}
+        working-directory: vscode-extension
+        run: npm run publish:marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Publish pre-release extension
+        if: ${{ inputs.pre_release }}
+        working-directory: vscode-extension
+        run: npm run publish:marketplace:pre
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
