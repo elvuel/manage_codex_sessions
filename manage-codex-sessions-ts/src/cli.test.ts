@@ -98,6 +98,15 @@ test('cli query --json returns expected payload', async () => {
   });
 });
 
+
+test('cli --help exits successfully', async () => {
+  const cwd = path.resolve(__dirname, '..');
+  const result = runCli(['--help'], cwd);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /manage-codex-sessions-ts/);
+  assert.match(result.stdout, /--version/);
+});
 test('cli export writes expected markdown file', async () => {
   const cwd = path.resolve(__dirname, '..');
   await withTempCodexHome(async (codexHome) => {

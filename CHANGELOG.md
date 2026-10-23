@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.3.1] - 2026-10-23
+
+### Fixed
+
+- Created the VS Code extension dist/ output directory before packaging the .vsix in CI and local release flows.
+- Corrected the standalone TypeScript CLI --help exit code so CI smoke tests pass.
 ## [1.3.0] - 2026-10-23
 
 ### Added

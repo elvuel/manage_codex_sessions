@@ -2,7 +2,7 @@
   "name": "manage-codex-sessions-vscode",
   "displayName": "Manage Codex Sessions",
   "description": "Browse, preview, rename, export, trash, restore, and purge local Codex sessions from VS Code.",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "publisher": "elvuel",
   "license": "MIT",
   "repository": {
@@ -190,7 +190,7 @@
     "compile": "tsc -p ./",
     "test": "npm run clean && npm run compile && node --test ./out/core.test.js",
     "watch": "tsc -watch -p ./",
-    "package:vsix": "npm run clean && npm run compile && npm exec -- vsce package --out ./dist/manage-codex-sessions-vscode.vsix",
+    "package:vsix": "node -e \"const fs=require(\\\"node:fs\\\"); fs.rmSync(\\\"dist\\\",{recursive:true,force:true}); fs.mkdirSync(\\\"dist\\\",{recursive:true})\" && npm run clean && npm run compile && npm exec -- vsce package --out ./dist/manage-codex-sessions-vscode.vsix",
     "vscode:prepublish": "npm run clean && npm run compile",
     "clean": "node -e \"require(\\\"node:fs\\\").rmSync(\\\"out\\\",{recursive:true,force:true})\"",
     "publish:marketplace": "npm run check:marketplace && npm run package:vsix && npm exec -- vsce publish --packagePath ./dist/manage-codex-sessions-vscode.vsix --skip-duplicate",

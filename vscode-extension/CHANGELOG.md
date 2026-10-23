@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1
+
+- Fixed .vsix packaging by creating the dist/ directory before calling sce package.
+
 ## 1.3.0
 
 - Aligned the extension version with the repository-wide 1.3.0 release.
@@ -13,4 +17,3 @@
 - Added Markdown preview, export, rename, delete, restore, and purge commands.
 - Added automatic `CODEX_HOME` file watching with debounced refresh.
 - Added local and CI `.vsix` packaging flow.
-

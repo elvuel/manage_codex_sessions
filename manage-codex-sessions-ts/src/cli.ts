@@ -45,9 +45,13 @@ async function main(argv = process.argv.slice(2)): Promise<number> {
     console.log(readPackageVersion());
     return 0;
   }
-  if (args.help || !args.command) {
+  if (args.help) {
     printHelp();
-    return args.command ? 0 : 1;
+    return 0;
+  }
+  if (!args.command) {
+    printHelp();
+    return 1;
   }
 
   const store = new CodexSessionsStore(args.codexHome);
