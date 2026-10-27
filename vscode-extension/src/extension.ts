@@ -10,6 +10,7 @@ import {
   formatRestoreSummary,
   resolveCodexHome,
 } from './core';
+import { ProjectNodeModel, groupSessionsByProject, sessionsForProject } from './project-groups';
 
 type SessionLocation = 'active' | 'trash';
 
@@ -18,10 +19,6 @@ interface SessionItemModel {
   location: SessionLocation;
 }
 
-interface ProjectNodeModel {
-  project: string;
-  sessions: SessionItemModel[];
-}
 
 class NativeCoreService {
   public resolveCodexHomePath(): string {
@@ -192,8 +189,8 @@ class ProjectTreeItem extends vscode.TreeItem {
     super(projectNode.project, vscode.TreeItemCollapsibleState.Collapsed);
     this.id = `project:${projectNode.project}`;
     this.contextValue = 'project-group';
-    this.description = `${projectNode.sessions.length}`;
-    this.tooltip = new vscode.MarkdownString(`**${projectNode.project}**\n\n${projectNode.sessions.length} session(s)`);
+    this.description = `${projectNode.sessionCount}`;
+    this.tooltip = new vscode.MarkdownString(`**${projectNode.project}**\n\n${projectNode.sessionCount} session(s)`);
   }
 }
 
@@ -240,12 +237,11 @@ class ProjectsProvider implements vscode.TreeDataProvider<ProjectTreeItem | Sess
     if (element instanceof SessionTreeItem) {
       return [];
     }
-    if (element instanceof ProjectTreeItem) {
-      return element.projectNode.sessions.map((session) => new SessionTreeItem(session));
-    }
-
     try {
       const sessions = await this.service.listSessions('active');
+      if (element instanceof ProjectTreeItem) {
+        return sessionsForProject(sessions, element.projectNode.project).map((session) => new SessionTreeItem(session));
+      }
       return groupSessionsByProject(sessions).map((projectNode) => new ProjectTreeItem(projectNode));
     } catch (error) {
       void vscode.window.showErrorMessage(asErrorMessage(error));
@@ -441,25 +437,6 @@ async function withProgress<T>(title: string, callback: () => Promise<T>): Promi
 async function confirmAction(message: string, actionLabel: string): Promise<boolean> {
   const choice = await vscode.window.showWarningMessage(message, { modal: true }, actionLabel);
   return choice === actionLabel;
-}
-
-function groupSessionsByProject(sessions: SessionItemModel[]): ProjectNodeModel[] {
-  const grouped = new Map<string, SessionItemModel[]>();
-  for (const session of sessions) {
-    const project = session.summary.primaryProject;
-    const items = grouped.get(project) || [];
-    items.push(session);
-    grouped.set(project, items);
-  }
-
-  return [...grouped.entries()]
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([project, projectSessions]) => ({
-      project,
-      sessions: [...projectSessions].sort((left, right) => {
-        return (right.summary.updatedAt?.getTime() ?? 0) - (left.summary.updatedAt?.getTime() ?? 0);
-      }),
-    }));
 }
 
 function describeSession(session: SessionSummary): string {
