@@ -10,7 +10,8 @@
     "declaration": true,
     "esModuleInterop": true,
     "moduleResolution": "NodeNext",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   },
   "include": ["src/**/*.ts"]
 }
