@@ -198,10 +198,10 @@
     "check:marketplace": "node ./scripts/check-marketplace.js"
   },
   "devDependencies": {
-    "@types/node": "^24.6.0",
+    "@types/node": "^26.6.5",
     "@types/vscode": "^1.90.0",
     "@vscode/vsce": "^4.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   },
   "icon": "media/manage_codex_sessions.png"
 }
