@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.3.2] - 2026-10-27
+
+### Added
+
+- Added a Python GUI `Resume` action that opens `codex resume <session_id>` in a new terminal for active sessions.
+
+### Fixed
+
+- Refreshed VS Code project children from current active sessions so moved-to-trash items no longer linger under stale project nodes.
+- Updated the standalone TypeScript CLI and VS Code extension TypeScript compiler settings for TypeScript 7 compatibility.
+
 ## [1.3.1] - 2026-10-23
 
 ### Fixed

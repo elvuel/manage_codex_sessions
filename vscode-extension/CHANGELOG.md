@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2
+
+- Fixed stale project child nodes after moving active sessions to trash.
+- Updated the extension TypeScript compiler settings for TypeScript 7 compatibility.
+
 ## 1.3.1
 
 - Fixed .vsix packaging by creating the dist/ directory before calling sce package.

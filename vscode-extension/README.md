@@ -88,7 +88,7 @@ The packaged file is written to `vscode-extension/dist/manage-codex-sessions-vsc
 2. Replace the placeholder `publisher` value in `package.json` with your real publisher ID.
 3. Add a GitHub Actions secret named `VSCE_PAT` with a Marketplace publishing token.
 4. Add a GitHub Actions repository variable named `VSCODE_MARKETPLACE_ENABLED` and set it to `true` to enable Marketplace publishing from the tagged-release workflow.
-5. Ensure the Git tag exactly matches `vscode-extension/package.json` version, for example `v1.3.1` for `"version": "1.3.1"`.
+5. Ensure the Git tag exactly matches `vscode-extension/package.json` version, for example `v1.3.2` for `"version": "1.3.2"`.
 6. Choose one of these publish paths:
    - Manual GitHub Actions publish: run `Publish VS Code extension to Marketplace` and set `ref` to the branch, tag, or commit to publish.
    - Tagged release publish: push a `v*` tag or run the tagged release workflow manually with an existing `v*` tag.

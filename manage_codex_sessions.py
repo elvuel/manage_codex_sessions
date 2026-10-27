@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 
-__version__ = "1.3.1"
+__version__ = "1.3.2"
 APP_ICON_RELATIVE_PATH = Path("assets") / "manage_codex_sessions.ico"
 
 
