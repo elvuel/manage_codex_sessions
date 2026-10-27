@@ -17,6 +17,7 @@
 - 支持从 CLI 或 GUI 将 session 对话导出为 Markdown。
 - 支持在 GUI 右键菜单中直接查看 session Markdown 预览。
 - 既支持 CLI 改名，也支持在 GUI 中使用右键菜单重命名。
+- 支持在 GUI 的活动 session 右键菜单中直接继续会话，并在新终端中执行 `codex resume <session_id>`。
 - 在 GUI 中选中一行或多行后按 `Ctrl+C`、使用右键菜单，或点击 `复制 Session ID` 按钮，即可复制一个或多个 `session_id` 到剪贴板。
 - 默认删除到回收站，之后可恢复或永久清理。
 - 支持按项目、工作目录、标题、来源等条件筛选。
@@ -178,6 +179,7 @@ python manage_codex_sessions_gui.py
 - 支持从右键菜单直接查看选中 session 的 Markdown 预览。
 - 支持将选中的 session 导出为 Markdown，也支持从右键菜单直接导出。
 - 双击任意 session 行即可打开 Markdown 预览。
+- 在活动 sessions 中使用右键菜单，可直接执行`继续会话`，并在新终端中打开对应 session。
 - 使用右键菜单即可进入重命名流程。
 - 选中一行或多行后按 `Ctrl+C`、使用右键菜单，或点击 `复制 Session ID` 按钮，即可复制一个或多个 `session_id` 到剪贴板。
 - 支持恢复、永久删除、批量删除等操作。

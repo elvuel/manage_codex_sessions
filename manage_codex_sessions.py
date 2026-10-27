@@ -4,6 +4,9 @@ import argparse
 import json
 import locale
 import os
+import shlex
+import shutil
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -134,6 +137,10 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "choose_codex_home": "Choose CODEX_HOME",
         "load_failed_title": "Load Failed",
         "copy_session_id_action": "Copy Session ID",
+        "resume_session": "Resume Session",
+        "resume_started_body": "Opened codex resume for session {session_id} in a new terminal.",
+        "resume_failed_title": "Resume Failed",
+        "resume_failed_body": "Could not launch codex resume for session {session_id}.\n\n{error}",
         "copy_session_id_body": "Session ID copied.",
         "copy_session_ids_body": "Copied {count} session IDs.",
         "export_markdown_title": "Export Session Markdown",
@@ -226,6 +233,10 @@ GUI_TRANSLATIONS: dict[str, dict[str, str]] = {
         "choose_codex_home": "选择 CODEX_HOME",
         "load_failed_title": "加载失败",
         "copy_session_id_action": "复制 Session ID",
+        "resume_session": "继续会话",
+        "resume_started_body": "已在新终端中继续会话 {session_id}。",
+        "resume_failed_title": "继续会话失败",
+        "resume_failed_body": "无法为 session {session_id} 在新终端中继续会话。\n\n{error}",
         "copy_session_id_body": "session_id已复制",
         "copy_session_ids_body": "已复制 {count} 个 session_id",
         "export_markdown_title": "导出 Session Markdown",
@@ -577,6 +588,18 @@ class SessionRollout:
     workspace_roots: tuple[str, ...] = ()
 
 
+class ResumeLaunchError(RuntimeError):
+    pass
+
+
+class CodexExecutableNotFound(ResumeLaunchError):
+    pass
+
+
+class TerminalLauncherNotFound(ResumeLaunchError):
+    pass
+
+
 @dataclass(slots=True)
 class SessionSummary:
     session_id: str
@@ -661,6 +684,77 @@ class SessionSummary:
         if include_paths:
             data["rollout_paths"] = [str(path) for path in self.rollout_paths]
         return data
+
+
+def resolve_resume_working_directory(session: SessionSummary) -> Path | None:
+    candidates: list[Path] = []
+    for value in sorted(session.workspace_roots_values):
+        if value and value != '-':
+            candidates.append(Path(value).expanduser())
+    for value in sorted(session.cwd_values):
+        if value and value != '-':
+            candidates.append(Path(value).expanduser())
+    for candidate in candidates:
+        if candidate.is_dir():
+            return candidate
+    return None
+
+
+def build_codex_resume_terminal_command(
+    session_id: str,
+    *,
+    platform_name: str | None = None,
+    which_func: Any = shutil.which,
+) -> list[str]:
+    platform_value = (platform_name or sys.platform).lower()
+    if platform_value.startswith('win'):
+        return ['cmd.exe', '/c', 'start', 'Codex Resume', 'cmd.exe', '/k', 'codex', 'resume', session_id]
+    if platform_value == 'darwin':
+        shell_command = f'codex resume {shlex.quote(session_id)}'
+        escaped_command = shell_command.replace('\\', '\\\\').replace('"', '\\"')
+        return [
+            'osascript',
+            '-e',
+            f'tell application "Terminal" to do script "{escaped_command}"',
+            '-e',
+            'tell application "Terminal" to activate',
+        ]
+
+    shell_command = f'codex resume {shlex.quote(session_id)}; exec bash'
+    terminal_commands = [
+        ('x-terminal-emulator', ['x-terminal-emulator', '-e', 'bash', '-lc', shell_command]),
+        ('gnome-terminal', ['gnome-terminal', '--', 'bash', '-lc', shell_command]),
+        ('konsole', ['konsole', '-e', 'bash', '-lc', shell_command]),
+        ('xterm', ['xterm', '-e', 'bash', '-lc', shell_command]),
+        ('alacritty', ['alacritty', '-e', 'bash', '-lc', shell_command]),
+    ]
+    for executable, command in terminal_commands:
+        if which_func(executable):
+            return command
+    raise TerminalLauncherNotFound('No supported terminal launcher was found on PATH.')
+
+
+def launch_codex_resume_in_terminal(
+    session_id: str,
+    *,
+    codex_home: Path,
+    working_directory: Path | None = None,
+    platform_name: str | None = None,
+    which_func: Any = shutil.which,
+    popen_func: Any = subprocess.Popen,
+) -> None:
+    if which_func('codex') is None:
+        raise CodexExecutableNotFound('The `codex` executable was not found on PATH.')
+    command = build_codex_resume_terminal_command(session_id, platform_name=platform_name, which_func=which_func)
+    env = os.environ.copy()
+    env['CODEX_HOME'] = str(codex_home)
+    popen_kwargs: dict[str, Any] = {'env': env}
+    if working_directory is not None and working_directory.is_dir():
+        popen_kwargs['cwd'] = str(working_directory)
+    try:
+        popen_func(command, **popen_kwargs)
+    except OSError as exc:
+        raise ResumeLaunchError(str(exc)) from exc
 
 
 @dataclass(slots=True)
@@ -1650,9 +1744,17 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
         return lock_file
 
     class SessionPanel(QtWidgets.QWidget):
-        def __init__(self, *, include_deleted_at: bool, button_specs: list[tuple[str, str]], title_key: str) -> None:
+        def __init__(
+            self,
+            *,
+            include_deleted_at: bool,
+            button_specs: list[tuple[str, str]],
+            title_key: str,
+            enable_resume: bool = False,
+        ) -> None:
             super().__init__()
             self.include_deleted_at = include_deleted_at
+            self.enable_resume = enable_resume
             self.title_key = title_key
             self.title = t(title_key)
             self.all_sessions: list[SessionSummary] = []
@@ -1662,6 +1764,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.on_rename_requested: Any = None
             self.on_view_markdown_requested: Any = None
             self.on_export_markdown_requested: Any = None
+            self.on_resume_requested: Any = None
             self.on_session_ids_copied: Any = None
 
             layout = QtWidgets.QVBoxLayout(self)
@@ -1803,6 +1906,9 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             copy_action = menu.addAction(t("copy_session_id_action"))
             copy_action.triggered.connect(self.copy_selected_or_current_session_ids)
             if target_session is not None:
+                if self.enable_resume:
+                    resume_action = menu.addAction(t("resume_session"))
+                    resume_action.triggered.connect(lambda checked=False, session=target_session: self.request_resume(session))
                 rename_action = menu.addAction(t("rename"))
                 rename_action.triggered.connect(lambda checked=False, session=target_session: self.request_rename(session))
                 view_action = menu.addAction(t("view_markdown"))
@@ -1822,6 +1928,10 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
         def request_export_markdown(self, session: SessionSummary) -> None:
             if callable(self.on_export_markdown_requested):
                 self.on_export_markdown_requested(session)
+
+        def request_resume(self, session: SessionSummary) -> None:
+            if callable(self.on_resume_requested):
+                self.on_resume_requested(session)
 
         def set_sessions(self, sessions: list[SessionSummary]) -> None:
             self.all_sessions = list(sessions)
@@ -1972,6 +2082,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.active_panel = SessionPanel(
                 include_deleted_at=False,
                 title_key="active_title",
+                enable_resume=True,
                 button_specs=[
                     ("select_all", "select_all"),
                     ("clear_selection", "clear_selection"),
@@ -2029,6 +2140,7 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
             self.trash_panel.on_view_markdown_requested = self.view_trash_session_markdown
             self.active_panel.on_export_markdown_requested = self.export_active_session
             self.trash_panel.on_export_markdown_requested = self.export_trash_session
+            self.active_panel.on_resume_requested = self.resume_active_session
             self.active_panel.on_session_ids_copied = self.handle_session_ids_copied
             self.trash_panel.on_session_ids_copied = self.handle_session_ids_copied
 
@@ -2341,6 +2453,22 @@ def launch_gui(codex_home: Path, *, language: str | None = None) -> int:
 
         def rename_active_session(self, session: SessionSummary) -> None:
             self.rename_one_session(session, in_trash=False)
+
+        def resume_active_session(self, session: SessionSummary) -> None:
+            try:
+                launch_codex_resume_in_terminal(
+                    session.session_id,
+                    codex_home=self.current_codex_home,
+                    working_directory=resolve_resume_working_directory(session),
+                )
+            except ResumeLaunchError as exc:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    t("resume_failed_title"),
+                    t("resume_failed_body", session_id=session.session_id, error=str(exc)),
+                )
+                return
+            self.show_toast(t("resume_started_body", session_id=session.session_id), timeout_ms=2500)
 
         def rename_trash_session(self, session: SessionSummary) -> None:
             self.rename_one_session(session, in_trash=True)

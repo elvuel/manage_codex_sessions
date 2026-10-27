@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 import build_manage_codex_sessions_gui as build_app
 import manage_codex_sessions as app
 
@@ -261,6 +263,66 @@ def test_gui_language_override_env_is_still_respected(monkeypatch) -> None:
     monkeypatch.delenv("CODEX_LANG", raising=False)
 
     assert app.normalize_gui_language(None, system_locale_name="zh_CN") == "en"
+
+
+def test_resolve_resume_working_directory_prefers_existing_workspace_root(tmp_path: Path) -> None:
+    workspace_root = tmp_path / "workspace-alpha"
+    workspace_root.mkdir()
+    session = app.SessionSummary(session_id="session-1")
+    session.workspace_roots_values.add(str(workspace_root))
+    session.cwd_values.add(str(tmp_path / "missing"))
+
+    assert app.resolve_resume_working_directory(session) == workspace_root
+
+
+def test_build_codex_resume_terminal_command_windows_uses_new_console() -> None:
+    command = app.build_codex_resume_terminal_command("session-1", platform_name="win32")
+
+    assert command == ["cmd.exe", "/c", "start", "Codex Resume", "cmd.exe", "/k", "codex", "resume", "session-1"]
+
+
+def test_launch_codex_resume_in_terminal_sets_codex_home_and_cwd(tmp_path: Path) -> None:
+    codex_home = tmp_path / "codex-home"
+    workspace_root = tmp_path / "workspace-alpha"
+    workspace_root.mkdir()
+    captured: dict[str, object] = {}
+
+    def fake_which(name: str) -> str | None:
+        if name == "codex":
+            return "/usr/bin/codex"
+        if name == "x-terminal-emulator":
+            return "/usr/bin/x-terminal-emulator"
+        return None
+
+    def fake_popen(command: list[str], **kwargs: object) -> object:
+        captured["command"] = command
+        captured["kwargs"] = kwargs
+        return object()
+
+    app.launch_codex_resume_in_terminal(
+        "session-1",
+        codex_home=codex_home,
+        working_directory=workspace_root,
+        platform_name="linux",
+        which_func=fake_which,
+        popen_func=fake_popen,
+    )
+
+    assert captured["command"] == ["x-terminal-emulator", "-e", "bash", "-lc", "codex resume session-1; exec bash"]
+    kwargs = captured["kwargs"]
+    assert isinstance(kwargs, dict)
+    assert kwargs["cwd"] == str(workspace_root)
+    assert kwargs["env"]["CODEX_HOME"] == str(codex_home)
+
+
+def test_launch_codex_resume_in_terminal_errors_when_codex_is_missing(tmp_path: Path) -> None:
+    with pytest.raises(app.CodexExecutableNotFound):
+        app.launch_codex_resume_in_terminal(
+            "session-1",
+            codex_home=tmp_path / "codex-home",
+            platform_name="linux",
+            which_func=lambda _name: None,
+        )
 
 
 def test_normalize_pyinstaller_args_preserves_unicode_empty_and_later_delimiters() -> None:

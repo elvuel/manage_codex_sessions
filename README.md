@@ -18,6 +18,7 @@ deleting safely to trash, restoring deleted sessions, and packaging the GUI as a
 - Export a session transcript to Markdown from the CLI or GUI.
 - Preview a session transcript as Markdown from the GUI right-click menu.
 - Rename sessions from the CLI or by using the GUI right-click menu.
+- Resume an active session from the GUI right-click menu in a new terminal with `codex resume <session_id>`.
 - Copy one or more `session_id` values to the clipboard by pressing `Ctrl+C` on selected rows, using the right-click menu, or clicking the `Copy Session ID` button.
 - Delete to trash by default, then restore or permanently purge later.
 - Filter sessions by project, working directory, title, source, and more.
@@ -179,6 +180,7 @@ For GUI-only override, set `CODEX_UI_LANG=en` or `CODEX_UI_LANG=zh-CN` before la
 - Preview a selected session as Markdown from the right-click menu.
 - Export a selected session to Markdown, including from the right-click menu.
 - Double-click any session row to open the Markdown preview.
+- Resume an active session from the right-click menu and open it in a new terminal.
 - In-place rename flow from the right-click menu.
 - One-step `session_id` copy for one or many selected rows by pressing `Ctrl+C`, using the right-click menu, or clicking the `Copy Session ID` button.
 - Restore, purge, and bulk delete actions.
