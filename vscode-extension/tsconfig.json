@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "NodeNext",
     "target": "ES2022",
     "lib": ["ES2022"],
     "outDir": "out",
@@ -8,7 +8,7 @@
     "strict": true,
     "sourceMap": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts"]
